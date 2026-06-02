@@ -1,65 +1,107 @@
-import Image from "next/image";
+import React from "react";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
+import Spinner from "@/components/ui/Spinner";
+import StatCard from "@/components/ui/StatCard";
+import { Coffee, Beer, DollarSign, TrendingUp } from "lucide-react";
 
 export default function Home() {
+  const currentTenant = process.env.NEXT_PUBLIC_CURRENT_TENANT_ID || "unknown-tenant";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex-1 bg-background text-text-primary p-6 sm:p-12">
+      <header className="max-w-6xl mx-auto mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-secondary pb-6">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-primary tracking-wide">
+            Bar Manager IO
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm text-text-secondary mt-1">
+            Gastronomy SaaS Control Panel
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="mt-4 sm:mt-0 flex items-center gap-3">
+          <span className="text-xs bg-secondary px-3 py-1.5 rounded-full border border-secondary-light/20 font-mono text-text-muted">
+            Tenant: {currentTenant}
+          </span>
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-medium text-emerald-400">System Online</span>
         </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto space-y-8">
+        {/* Alert Zone */}
+        <section>
+          <Alert message="Attention: Happy Hour starts in 30 minutes. Make sure the beer taps are calibrated and menu pricing is synchronized." />
+        </section>
+
+        {/* Stats Grid */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            label="Active Beer Taps"
+            value="14"
+            unit="/ 16"
+            icon={Beer}
+          />
+          <StatCard
+            label="Chalkboard Specials Active"
+            value="5"
+            unit="items"
+            icon={Coffee}
+          />
+          <StatCard
+            label="Total Night Sales"
+            value="$2,450"
+            unit="USD"
+            icon={DollarSign}
+          />
+          <StatCard
+            label="Average Table Turnover"
+            value="42"
+            unit="min"
+            icon={TrendingUp}
+          />
+        </section>
+
+        {/* Main Content Area */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <div className="p-6 space-y-4">
+                <h2 className="text-xl font-display text-text-primary">
+                  Tonight's Performance Overview
+                </h2>
+                <p className="text-sm text-text-secondary">
+                  Real-time sales velocity monitoring for tenant <span className="text-primary font-semibold">{currentTenant}</span>.
+                </p>
+                <div className="h-48 bg-secondary-dark rounded border border-secondary flex items-center justify-center text-text-muted">
+                  [ Live Sales Graph Placeholder ]
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card>
+              <div className="p-6 space-y-4">
+                <h2 className="text-xl font-display text-text-primary">
+                  Kitchen Sync Status
+                </h2>
+                <p className="text-sm text-text-secondary">
+                  Syncing live order updates from kitchen display systems.
+                </p>
+                <div className="flex flex-col items-center justify-center py-6 border border-dashed border-secondary rounded-lg">
+                  <Spinner />
+                  <span className="text-xs text-text-muted mt-2">Connecting to local POS...</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
       </main>
+
+      <footer className="max-w-6xl mx-auto mt-16 border-t border-secondary pt-6 text-center text-xs text-text-muted">
+        &copy; {new Date().getFullYear()} Bar Manager IO. All rights reserved.
+      </footer>
     </div>
   );
 }
