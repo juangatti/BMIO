@@ -2073,8 +2073,6 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             </div>
           </div>
         )}
-      </main>
-      </div>
 
       {/* MODAL 5: ADD WORK SCHEDULE */}
       {showAddScheduleModal && (
@@ -3080,6 +3078,8 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
           </div>
         </div>
       )}
+      </main>
+      </div>
     </div>
   );
 }
