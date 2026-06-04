@@ -15,7 +15,13 @@ import {
   Plus, 
   Trash2,
   Settings,
-  UserCheck
+  UserCheck,
+  LayoutDashboard,
+  BarChart3,
+  FileText,
+  CalendarRange,
+  Clock,
+  Users
 } from "lucide-react";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
@@ -183,6 +189,35 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
 
   // Pouring simulation state
   const [pouringLiters, setPouringLiters] = useState<number>(0.5);
+
+  const navigationItems = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "taps", label: "Beer Taps", icon: Beer },
+    { id: "inventory", label: "Inventory", icon: Box },
+    { id: "financials", label: "Financials", icon: BarChart3 },
+    { id: "expenses", label: "Expenses", icon: FileText },
+    { id: "reservations", label: "Reservations", icon: CalendarRange },
+    { id: "prebatches", label: "Prebatches", icon: Layers },
+    { id: "schedules", label: "Schedules", icon: Clock },
+    ...(currentUser?.role === "admin" ? [{ id: "staff", label: "Staff", icon: Users }] : []),
+    { id: "settings", label: "Settings", icon: Settings },
+  ] as const;
+
+  const formatBreadcrumb = (tab: string) => {
+    const map: Record<string, string> = {
+      overview: "Overview",
+      taps: "Beer Taps",
+      inventory: "Inventory",
+      financials: "Financials",
+      expenses: "Expenses",
+      reservations: "Reservations",
+      prebatches: "Prebatches",
+      schedules: "Schedules",
+      staff: "Staff",
+      settings: "Settings",
+    };
+    return map[tab] || tab;
+  };
 
   // Refresh helper
   const refreshData = async () => {
@@ -525,140 +560,132 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
 
   return (
     <div 
-      className="flex-1 bg-background text-text-primary p-4 sm:p-8"
+      className="flex min-h-screen bg-zinc-950 text-text-primary"
       style={{
         // @ts-ignore
         "--color-primary": localData.tenant?.primaryColor || "#f59e0b"
       }}
     >
-      {/* Header */}
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between border-b border-secondary pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            {localData.tenant?.logoUrl ? (
-              <img src={localData.tenant.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
-            ) : (
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-[0_0_15px_rgba(245,158,11,0.08)]">
-                <Beer className="w-5 h-5" />
-              </div>
-            )}
-            <h1 className="text-2xl font-display font-bold text-primary tracking-wider">
-              {localData.tenant?.displayName || localData.tenant?.name || "Bar Manager IO"}
-            </h1>
-            <span className="text-[9px] font-mono tracking-widest text-primary border border-primary/20 bg-primary/5 px-2 py-0.5 rounded-full uppercase">
-              White-Label B2B
-            </span>
-          </div>
-          <p className="text-[10px] text-text-secondary mt-1 uppercase tracking-wider">
-            Operational Control Panel &bull; Tenant: <span className="text-primary font-semibold">{tenantId}</span>
-          </p>
-        </div>
-        
-        {/* Navigation Tabs and Session Info */}
-        <div className="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
-          <div className="flex flex-wrap gap-1 bg-zinc-950/80 backdrop-blur-md p-1 rounded-xl border border-zinc-800/40 shadow-inner">
-            <button 
-              onClick={() => setActiveTab("overview")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "overview" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Overview
-            </button>
-            <button 
-              onClick={() => setActiveTab("taps")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "taps" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Beer Taps
-            </button>
-            <button 
-              onClick={() => setActiveTab("inventory")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "inventory" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Inventory
-            </button>
-            <button 
-              onClick={() => setActiveTab("financials")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "financials" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Financials
-            </button>
-            <button 
-              onClick={() => setActiveTab("expenses")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "expenses" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Expenses
-            </button>
-            <button 
-              onClick={() => setActiveTab("reservations")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "reservations" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Reservations
-            </button>
-            <button 
-              onClick={() => setActiveTab("prebatches")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "prebatches" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Prebatches
-            </button>
-            <button 
-              onClick={() => setActiveTab("schedules")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "schedules" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Schedules
-            </button>
-            {currentUser?.role === "admin" && (
-              <button 
-                onClick={() => setActiveTab("staff")}
-                className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "staff" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-              >
-                Staff
-              </button>
-            )}
-            <button 
-              onClick={() => setActiveTab("settings")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "settings" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
-            >
-              Settings
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div 
-              onClick={() => setActiveTab("settings")}
-              className="flex items-center gap-3 bg-secondary-dark/65 hover:bg-secondary-light/20 border border-secondary-light/35 px-3 py-1.5 rounded-xl font-body cursor-pointer transition-all duration-300 group hover:border-primary/30"
-              title="Go to Settings"
-            >
-              <div className="text-right">
-                <p className="text-xs font-semibold text-text-primary group-hover:text-primary transition-colors">{currentUser?.name || "User"}</p>
-                <span className="text-[9px] font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded-full font-mono border border-primary/15">{currentUser?.role || "Staff"}</span>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all">
-                <span className="text-xs font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
-              </div>
+      {/* Sidebar (Left Navigation Column) */}
+      <aside className="w-16 md:w-64 bg-zinc-950 border-r border-zinc-900/60 flex flex-col shrink-0 transition-all duration-300">
+        {/* Top Section: App Brand */}
+        <div className="h-14 border-b border-zinc-900/60 flex items-center px-4 md:px-6 gap-3 shrink-0">
+          {localData.tenant?.logoUrl ? (
+            <img src={localData.tenant.logoUrl} alt="Logo" className="w-6 h-6 object-contain rounded-lg shrink-0" />
+          ) : (
+            <div className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <Beer className="w-3.5 h-3.5" />
             </div>
-            <button
-              onClick={async () => {
-                await logoutUser();
-                window.location.reload();
-              }}
-              className="text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-2.5 py-1.5 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
-            >
-              Logout
-            </button>
+          )}
+          <div className="hidden md:flex flex-col min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="font-display font-bold text-sm tracking-wider truncate text-primary">
+                {localData.tenant?.displayName || localData.tenant?.name || "Bar Manager IO"}
+              </span>
+              <span className="text-[8px] font-mono text-zinc-500 border border-zinc-800 bg-zinc-900/40 px-1 rounded uppercase">
+                v1.0
+              </span>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Loading Overlay */}
-      {isPending && (
-        <div className="fixed inset-0 bg-secondary-dark/60 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-surface border border-secondary p-6 rounded-lg flex items-center gap-3">
-            <Spinner />
-            <span className="text-xs uppercase tracking-widest text-text-secondary">Syncing with Supabase...</span>
+        {/* Middle Section: Navigation Items */}
+        <nav className="flex-1 py-4 overflow-y-auto px-2 md:px-3 space-y-1">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as typeof activeTab)}
+                className={`w-full flex items-center justify-center md:justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 relative group ${
+                  isActive
+                    ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-primary animate-pulse" />
+                )}
+                <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-400"}`} />
+                <span className="hidden md:inline truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main Content Outer Container */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-hidden">
+        {/* Topbar Header (Right Top) */}
+        <header className="h-14 border-b border-zinc-900/60 bg-zinc-950/40 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
+          {/* Left side: Breadcrumbs */}
+          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
+            <span className="hover:text-zinc-200 transition-colors">Dashboard</span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-primary font-semibold font-mono tracking-wide uppercase">{formatBreadcrumb(activeTab)}</span>
           </div>
-        </div>
-      )}
 
-      <main className="max-w-7xl mx-auto space-y-6">
+          {/* Right side: User Profile, Logout & Tenant */}
+          <div className="flex items-center gap-4">
+            {/* User profile */}
+            <div className="flex items-center gap-3">
+              <div 
+                onClick={() => setActiveTab("settings")}
+                className="flex items-center gap-2 hover:bg-zinc-900 px-2 py-1 rounded-lg cursor-pointer transition-colors group"
+                title="Go to Settings"
+              >
+                <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors shrink-0">
+                  <span className="text-[11px] font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
+                </div>
+                <div className="hidden sm:block text-left min-w-0">
+                  <p className="text-xs font-semibold text-zinc-200 group-hover:text-primary transition-colors truncate max-w-[100px]">{currentUser?.name || "User"}</p>
+                  <p className="text-[9px] text-zinc-500 font-mono leading-none capitalize">{currentUser?.role || "Staff"}</p>
+                </div>
+              </div>
+
+              {/* Subtle Logout button */}
+              <button
+                onClick={async () => {
+                  await logoutUser();
+                  window.location.reload();
+                }}
+                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-500/20 px-2.5 py-1 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+
+            {/* Vertical border line separator */}
+            <div className="w-[1px] h-6 bg-zinc-800" />
+
+            {/* Tenant logo and organization name */}
+            <div className="flex items-center gap-2 shrink-0">
+              {localData.tenant?.logoUrl ? (
+                <img src={localData.tenant.logoUrl} alt="Logo" className="w-6 h-6 object-contain rounded-md" />
+              ) : (
+                <div className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  <Beer className="w-3.5 h-3.5" />
+                </div>
+              )}
+              <span className="hidden sm:inline text-xs font-semibold text-zinc-300">
+                {localData.tenant?.displayName || localData.tenant?.name || "Bar Manager"}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* Loading Overlay */}
+        {isPending && (
+          <div className="fixed inset-0 bg-secondary-dark/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-surface border border-secondary p-6 rounded-lg flex items-center gap-3">
+              <Spinner />
+              <span className="text-xs uppercase tracking-widest text-text-secondary">Syncing with Supabase...</span>
+            </div>
+          </div>
+        )}
+
+        <main className="flex-1 overflow-y-auto px-6 py-8 sm:px-8 space-y-6 max-w-7xl mx-auto w-full">
         {/* Tab 1: OVERVIEW */}
         {activeTab === "overview" && (
           <div className="space-y-6 animate-fadeIn">
@@ -2062,6 +2089,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
           </div>
         )}
       </main>
+      </div>
 
       {/* MODAL 5: ADD WORK SCHEDULE */}
       {showAddScheduleModal && (
