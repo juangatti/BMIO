@@ -1,6 +1,7 @@
+require("./load-env");
 const { Client } = require('pg');
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres.qktssnxozvtivewgwgeh:dvAomq9d9w26LIQ4@aws-1-us-east-2.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL;
 
 console.log("Connecting to:", connectionString.replace(/:[^:@]+@/, ':****@'));
 
