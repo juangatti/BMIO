@@ -83,6 +83,7 @@ interface DashboardProps {
 
 export default function Dashboard({ initialData, tenantId, currentUser }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "taps" | "inventory" | "reservations" | "prebatches" | "schedules" | "staff" | "settings" | "financials" | "expenses">("overview");
+  const [activeSettingsTab, setActiveSettingsTab] = useState<"profile" | "branding" | "categories" | "permissions">("profile");
   const [isPending, startTransition] = useTransition();
   const [localData, setLocalData] = useState(initialData);
 
@@ -567,7 +568,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
       }}
     >
       {/* Sidebar (Left Navigation Column) */}
-      <aside className="w-16 md:w-64 bg-zinc-950 border-r border-zinc-900/60 flex flex-col shrink-0 transition-all duration-300">
+      <aside className="w-16 hover:w-64 bg-zinc-950 border-r border-zinc-900/60 flex flex-col shrink-0 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group fixed md:sticky top-0 bottom-0 h-screen select-none z-40">
         {/* Top Section: App Brand */}
         <div className="h-14 border-b border-zinc-900/60 flex items-center px-4 md:px-6 gap-3 shrink-0">
           {localData.tenant?.logoUrl ? (
@@ -577,12 +578,12 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <Beer className="w-3.5 h-3.5" />
             </div>
           )}
-          <div className="hidden md:flex flex-col min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
+          <div className="hidden group-hover:flex flex-col min-w-0 flex-1 truncate">
+            <div className="flex items-center gap-1.5 truncate">
               <span className="font-display font-bold text-sm tracking-wider truncate text-primary">
                 {localData.tenant?.displayName || localData.tenant?.name || "Bar Manager IO"}
               </span>
-              <span className="text-[8px] font-mono text-zinc-500 border border-zinc-800 bg-zinc-900/40 px-1 rounded uppercase">
+              <span className="text-[8px] font-mono text-zinc-500 border border-zinc-800 bg-zinc-900/40 px-1 rounded uppercase shrink-0">
                 v1.0
               </span>
             </div>
@@ -598,7 +599,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as typeof activeTab)}
-                className={`w-full flex items-center justify-center md:justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 relative group ${
+                className={`w-full flex items-center justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 relative group ${
                   isActive
                     ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
@@ -608,7 +609,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-primary animate-pulse" />
                 )}
                 <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-400"}`} />
-                <span className="hidden md:inline truncate">{item.label}</span>
+                <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 truncate whitespace-nowrap hidden group-hover:inline">{item.label}</span>
               </button>
             );
           })}
@@ -626,51 +627,35 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             <span className="text-primary font-semibold font-mono tracking-wide uppercase">{formatBreadcrumb(activeTab)}</span>
           </div>
 
-          {/* Right side: User Profile, Logout & Tenant */}
-          <div className="flex items-center gap-4">
-            {/* User profile */}
-            <div className="flex items-center gap-3">
-              <div 
-                onClick={() => setActiveTab("settings")}
-                className="flex items-center gap-2 hover:bg-zinc-900 px-2 py-1 rounded-lg cursor-pointer transition-colors group"
-                title="Go to Settings"
-              >
-                <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors shrink-0">
-                  <span className="text-[11px] font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
-                </div>
-                <div className="hidden sm:block text-left min-w-0">
-                  <p className="text-xs font-semibold text-zinc-200 group-hover:text-primary transition-colors truncate max-w-[100px]">{currentUser?.name || "User"}</p>
-                  <p className="text-[9px] text-zinc-500 font-mono leading-none capitalize">{currentUser?.role || "Staff"}</p>
-                </div>
-              </div>
-
-              {/* Subtle Logout button */}
-              <button
-                onClick={async () => {
-                  await logoutUser();
-                  window.location.reload();
-                }}
-                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-500/20 px-2.5 py-1 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
-              >
-                Logout
-              </button>
-            </div>
+          {/* Right side: Logout & User Profile */}
+          <div className="flex items-center gap-3">
+            {/* Subtle Logout button */}
+            <button
+              onClick={async () => {
+                await logoutUser();
+                window.location.reload();
+              }}
+              className="text-[10px] bg-zinc-900 hover:bg-zinc-800 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-500/20 px-2.5 py-1 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
+            >
+              Logout
+            </button>
 
             {/* Vertical border line separator */}
-            <div className="w-[1px] h-6 bg-zinc-800" />
+            <div className="w-[1px] h-5 bg-zinc-900" />
 
-            {/* Tenant logo and organization name */}
-            <div className="flex items-center gap-2 shrink-0">
-              {localData.tenant?.logoUrl ? (
-                <img src={localData.tenant.logoUrl} alt="Logo" className="w-6 h-6 object-contain rounded-md" />
-              ) : (
-                <div className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
-                  <Beer className="w-3.5 h-3.5" />
-                </div>
-              )}
-              <span className="hidden sm:inline text-xs font-semibold text-zinc-300">
-                {localData.tenant?.displayName || localData.tenant?.name || "Bar Manager"}
-              </span>
+            {/* User profile */}
+            <div 
+              onClick={() => { setActiveTab("settings"); setActiveSettingsTab("profile"); }}
+              className="flex items-center gap-2 hover:bg-zinc-900 px-2 py-1 rounded-lg cursor-pointer transition-colors group"
+              title="Go to Settings"
+            >
+              <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors shrink-0">
+                <span className="text-[11px] font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
+              </div>
+              <div className="hidden sm:block text-left min-w-0">
+                <p className="text-xs font-semibold text-zinc-200 group-hover:text-primary transition-colors truncate max-w-[100px]">{currentUser?.name || "User"}</p>
+                <p className="text-[9px] text-zinc-500 font-mono leading-none capitalize">{currentUser?.role || "Staff"}</p>
+              </div>
             </div>
           </div>
         </header>
@@ -2538,7 +2523,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
       {/* Tab 7: STAFF MANAGEMENT */}
       {activeTab === "staff" && currentUser?.role === "admin" && (
         <div className="space-y-6 animate-fadeIn">
-          <div className="bg-surface p-4 rounded border border-secondary flex justify-between items-center">
+          <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/40 flex justify-between items-center">
             <span className="text-xs uppercase tracking-wider text-text-secondary">Staff Member Accounts</span>
             <button 
               onClick={() => setShowAddUserModal(true)}
@@ -2552,7 +2537,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-secondary bg-secondary-dark text-[10px] text-text-secondary uppercase tracking-wider">
+                  <tr className="border-b border-zinc-800/40 bg-zinc-950/50 text-[10px] text-text-secondary uppercase tracking-wider">
                     <th className="p-4">Name</th>
                     <th className="p-4">Email</th>
                     <th className="p-4">Role</th>
@@ -2560,9 +2545,9 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-secondary">
+                <tbody className="divide-y divide-zinc-900">
                   {localData.users.map(u => (
-                    <tr key={u.id} className="hover:bg-secondary-dark transition-colors">
+                    <tr key={u.id} className="hover:bg-zinc-900/40 transition-colors">
                       <td className="p-4 text-xs font-semibold text-text-primary">{u.name}</td>
                       <td className="p-4 text-xs text-text-secondary font-mono">{u.email}</td>
                       <td className="p-4">
@@ -2579,7 +2564,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                         <button 
                           onClick={() => handleToggleUser(u.id, !u.isActive)}
                           disabled={u.id === currentUser?.id}
-                          className="text-[10px] disabled:opacity-50 disabled:cursor-not-allowed bg-secondary hover:bg-secondary-light border border-secondary-light/30 px-3 py-1 rounded text-text-primary transition-colors cursor-pointer"
+                          className="text-[10px] disabled:opacity-50 disabled:cursor-not-allowed bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1 rounded-lg text-text-primary transition-colors cursor-pointer"
                         >
                           {u.isActive ? 'Deactivate' : 'Activate'}
                         </button>
@@ -2596,253 +2581,309 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
       {/* Tab 8: SETTINGS */}
       {activeTab === "settings" && (
         <div className="space-y-6 animate-fadeIn">
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Two-column layout */}
+          <div className="flex flex-col lg:flex-row gap-6">
             
-            {/* Panel 1: My Profile (All Roles) */}
-            <Card>
-              <div className="p-6">
-                <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
-                  <UserCheck className="text-primary w-5 h-5" /> My Profile
-                </h2>
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] uppercase text-text-secondary mb-1">Full Name</label>
-                    <input 
-                      type="text"
-                      required
-                      placeholder="Your Name"
-                      value={profileForm.name}
-                      onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                    />
-                  </div>
+            {/* Left column (Sub-sidebar menu) */}
+            <div className="w-full lg:w-56 flex flex-row lg:flex-col gap-1 bg-zinc-950/40 p-2 rounded-2xl border border-zinc-900/60 shrink-0">
+              <button
+                onClick={() => setActiveSettingsTab("profile")}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 truncate ${
+                  activeSettingsTab === "profile"
+                    ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
+                }`}
+              >
+                <UserCheck className="w-4 h-4 shrink-0" />
+                <span>My Profile</span>
+              </button>
 
-                  <div>
-                    <label className="block text-[10px] uppercase text-text-secondary mb-1">Email Address</label>
-                    <input 
-                      type="email"
-                      required
-                      placeholder="yourname@domain.com"
-                      value={profileForm.email}
-                      onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                    />
-                  </div>
+              {currentUser?.role === "admin" && (
+                <>
+                  <button
+                    onClick={() => setActiveSettingsTab("branding")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 truncate ${
+                      activeSettingsTab === "branding"
+                        ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
+                    }`}
+                  >
+                    <Settings className="w-4 h-4 shrink-0" />
+                    <span>Brand Customization</span>
+                  </button>
 
-                  <div>
-                    <label className="block text-[10px] uppercase text-text-secondary mb-1">New Password (leave blank to keep current)</label>
-                    <input 
-                      type="password"
-                      placeholder="••••••••"
-                      value={profileForm.password}
-                      onChange={e => setProfileForm({ ...profileForm, password: e.target.value })}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                    />
-                  </div>
+                  <button
+                    onClick={() => setActiveSettingsTab("categories")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 truncate ${
+                      activeSettingsTab === "categories"
+                        ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
+                    }`}
+                  >
+                    <Layers className="w-4 h-4 shrink-0" />
+                    <span>Menu Categories</span>
+                  </button>
 
-                  <div className="pt-2">
-                    <button 
-                      type="submit"
-                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
-                    >
-                      Save Profile Changes
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </Card>
+                  <button
+                    onClick={() => setActiveSettingsTab("permissions")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 truncate ${
+                      activeSettingsTab === "permissions"
+                        ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
+                    }`}
+                  >
+                    <UserCheck className="w-4 h-4 shrink-0" />
+                    <span>Permission Policies</span>
+                  </button>
+                </>
+              )}
+            </div>
 
-            {/* Panel 2: Brand Customization (Admin Only) */}
-            {currentUser?.role === "admin" && (
-              <Card>
-                <div className="p-6">
-                  <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
-                    <Settings className="text-primary w-5 h-5" /> Brand Customization
-                  </h2>
-                  <form onSubmit={handleUpdateBranding} className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] uppercase text-text-secondary mb-1">Display Name</label>
-                      <input 
-                        type="text"
-                        placeholder="e.g. Gatto Bar"
-                        value={brandingForm.displayName}
-                        onChange={e => setBrandingForm({ ...brandingForm, displayName: e.target.value })}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase text-text-secondary mb-1">Logo URL</label>
-                      <input 
-                        type="text"
-                        placeholder="e.g. https://domain.com/logo.png"
-                        value={brandingForm.logoUrl}
-                        onChange={e => setBrandingForm({ ...brandingForm, logoUrl: e.target.value })}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase text-text-secondary mb-1">Primary Theme Color</label>
-                      <div className="flex gap-3 items-center">
-                        <input 
-                          type="color"
-                          value={brandingForm.primaryColor}
-                          onChange={e => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
-                          className="w-8 h-8 rounded border border-secondary cursor-pointer bg-transparent"
-                        />
+            {/* Right column (Active workspace) */}
+            <div className="flex-1">
+              {activeSettingsTab === "profile" && (
+                <Card>
+                  <div className="p-6">
+                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
+                      <UserCheck className="text-primary w-5 h-5" /> My Profile
+                    </h2>
+                    <form onSubmit={handleUpdateProfile} className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Full Name</label>
                         <input 
                           type="text"
-                          pattern="^#[0-9A-Fa-f]{6}$"
-                          placeholder="#f59e0b"
-                          value={brandingForm.primaryColor}
-                          onChange={e => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
-                          className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
+                          required
+                          placeholder="Your Name"
+                          value={profileForm.name}
+                          onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-[10px] uppercase text-text-secondary mb-1">Available Taps Count</label>
-                      <input 
-                        type="number"
-                        min="3"
-                        max="12"
-                        required
-                        value={brandingForm.tapCount}
-                        onChange={e => setBrandingForm({ ...brandingForm, tapCount: parseInt(e.target.value) || 8 })}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Email Address</label>
+                        <input 
+                          type="email"
+                          required
+                          placeholder="yourname@domain.com"
+                          value={profileForm.email}
+                          onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
+                        />
+                      </div>
 
-                    <div className="pt-2">
-                      <button 
-                        type="submit"
-                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
-                      >
-                        Apply Branding
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </Card>
-            )}
+                      <div>
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">New Password (leave blank to keep current)</label>
+                        <input 
+                          type="password"
+                          placeholder="••••••••"
+                          value={profileForm.password}
+                          onChange={e => setProfileForm({ ...profileForm, password: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
+                        />
+                      </div>
 
-            {/* Panel 3: Menu Categories (Admin Only) */}
-            {currentUser?.role === "admin" && (
-              <Card>
-                <div className="p-6">
-                  <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
-                    <Layers className="text-primary w-5 h-5" /> Menu Categories
-                  </h2>
-                  <form onSubmit={handleCreateCategory} className="flex gap-2 mb-4">
-                    <input 
-                      type="text"
-                      required
-                      placeholder="Category Name (e.g. Craft Beer, Cocktails)"
-                      value={newCategoryName}
-                      onChange={e => setNewCategoryName(e.target.value)}
-                      className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
-                    />
-                    <button 
-                      type="submit"
-                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20 flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" /> Add
-                    </button>
-                  </form>
-
-                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                    {localData.categories.length === 0 ? (
-                      <p className="text-xs text-text-muted italic py-3 text-center">No categories registered.</p>
-                    ) : (
-                      localData.categories.map(cat => (
-                        <div key={cat.id} className="flex justify-between items-center p-2.5 bg-secondary-dark rounded border border-secondary hover:border-secondary-light transition-all">
-                          <span className="text-xs text-text-primary font-semibold">{cat.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="text-rose-400 hover:text-rose-300 transition-colors p-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))
-                    )}
+                      <div className="pt-2">
+                        <button 
+                          type="submit"
+                          className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
+                        >
+                          Save Profile Changes
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                </div>
-              </Card>
-            )}
+                </Card>
+              )}
 
-            {/* Panel 4: Permission Policies (Admin Only) */}
-            {currentUser?.role === "admin" && (
-              <Card>
-                <div className="p-6">
-                  <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
-                    <UserCheck className="text-primary w-5 h-5" /> Permission Policies
-                  </h2>
-                  <form onSubmit={handleUpdateRolePermissions} className="space-y-5">
-                    <div className="flex items-center justify-between p-3 bg-secondary-dark rounded border border-secondary">
+              {activeSettingsTab === "branding" && currentUser?.role === "admin" && (
+                <Card>
+                  <div className="p-6">
+                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
+                      <Settings className="text-primary w-5 h-5" /> Brand Customization
+                    </h2>
+                    <form onSubmit={handleUpdateBranding} className="space-y-4">
                       <div>
-                        <p className="text-xs font-semibold text-text-primary">Staff Stock Adjustment</p>
-                        <p className="text-[10px] text-text-secondary">Allow staff members to adjust stock quantities (+1/-1)</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Display Name</label>
                         <input 
-                          type="checkbox"
-                          checked={permissionsForm.allowStaffStockAdjust}
-                          onChange={e => setPermissionsForm({ ...permissionsForm, allowStaffStockAdjust: e.target.checked })}
-                          className="sr-only peer"
+                          type="text"
+                          placeholder="e.g. Gatto Bar"
+                          value={brandingForm.displayName}
+                          onChange={e => setBrandingForm({ ...brandingForm, displayName: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                         />
-                        <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                      </label>
-                    </div>
+                      </div>
 
-                    <div className="flex items-center justify-between p-3 bg-secondary-dark rounded border border-secondary">
                       <div>
-                        <p className="text-xs font-semibold text-text-primary">Cashier Keg Management</p>
-                        <p className="text-[10px] text-text-secondary">Allow cashiers to pour, tap, untap, and register kegs</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Logo URL</label>
                         <input 
-                          type="checkbox"
-                          checked={permissionsForm.allowCashierKegManage}
-                          onChange={e => setPermissionsForm({ ...permissionsForm, allowCashierKegManage: e.target.checked })}
-                          className="sr-only peer"
+                          type="text"
+                          placeholder="e.g. https://domain.com/logo.png"
+                          value={brandingForm.logoUrl}
+                          onChange={e => setBrandingForm({ ...brandingForm, logoUrl: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                         />
-                        <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                      </label>
-                    </div>
+                      </div>
 
-                    <div className="flex items-center justify-between p-3 bg-secondary-dark rounded border border-secondary">
                       <div>
-                        <p className="text-xs font-semibold text-text-primary">Kitchen View Sales</p>
-                        <p className="text-[10px] text-text-secondary">Allow kitchen staff to view sales figures and metrics</p>
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Primary Theme Color</label>
+                        <div className="flex gap-3 items-center">
+                          <input 
+                            type="color"
+                            value={brandingForm.primaryColor}
+                            onChange={e => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-zinc-850 cursor-pointer bg-transparent"
+                          />
+                          <input 
+                            type="text"
+                            pattern="^#[0-9A-Fa-f]{6}$"
+                            placeholder="#f59e0b"
+                            value={brandingForm.primaryColor}
+                            onChange={e => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
+                            className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
+                          />
+                        </div>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox"
-                          checked={permissionsForm.allowKitchenViewSales}
-                          onChange={e => setPermissionsForm({ ...permissionsForm, allowKitchenViewSales: e.target.checked })}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                      </label>
-                    </div>
 
-                    <div className="pt-2">
+                      <div>
+                        <label className="block text-[10px] uppercase text-text-secondary mb-1">Available Taps Count</label>
+                        <input 
+                          type="number"
+                          min="3"
+                          max="12"
+                          required
+                          value={brandingForm.tapCount}
+                          onChange={e => setBrandingForm({ ...brandingForm, tapCount: parseInt(e.target.value) || 8 })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
+                        />
+                      </div>
+
+                      <div className="pt-2">
+                        <button 
+                          type="submit"
+                          className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
+                        >
+                          Apply Branding
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </Card>
+              )}
+
+              {activeSettingsTab === "categories" && currentUser?.role === "admin" && (
+                <Card>
+                  <div className="p-6">
+                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
+                      <Layers className="text-primary w-5 h-5" /> Menu Categories
+                    </h2>
+                    <form onSubmit={handleCreateCategory} className="flex gap-2 mb-4">
+                      <input 
+                        type="text"
+                        required
+                        placeholder="Category Name (e.g. Craft Beer, Cocktails)"
+                        value={newCategoryName}
+                        onChange={e => setNewCategoryName(e.target.value)}
+                        className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
+                      />
                       <button 
                         type="submit"
-                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
+                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20 flex items-center gap-1"
                       >
-                        Save Policies
+                        <Plus className="w-4 h-4" /> Add
                       </button>
+                    </form>
+
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {localData.categories.length === 0 ? (
+                        <p className="text-xs text-text-muted italic py-3 text-center">No categories registered.</p>
+                      ) : (
+                        localData.categories.map(cat => (
+                          <div key={cat.id} className="flex justify-between items-center p-2.5 bg-zinc-950/50 rounded-xl border border-zinc-900 hover:border-zinc-800 transition-all">
+                            <span className="text-xs text-text-primary font-semibold">{cat.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className="text-rose-400 hover:text-rose-300 transition-colors p-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  </form>
-                </div>
-              </Card>
-            )}
+                  </div>
+                </Card>
+              )}
+
+              {activeSettingsTab === "permissions" && currentUser?.role === "admin" && (
+                <Card>
+                  <div className="p-6">
+                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase flex items-center gap-2">
+                      <UserCheck className="text-primary w-5 h-5" /> Permission Policies
+                    </h2>
+                    <form onSubmit={handleUpdateRolePermissions} className="space-y-5">
+                      <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-zinc-900">
+                        <div>
+                          <p className="text-xs font-semibold text-text-primary">Staff Stock Adjustment</p>
+                          <p className="text-[10px] text-text-secondary">Allow staff members to adjust stock quantities (+1/-1)</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            checked={permissionsForm.allowStaffStockAdjust}
+                            onChange={e => setPermissionsForm({ ...permissionsForm, allowStaffStockAdjust: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-zinc-900">
+                        <div>
+                          <p className="text-xs font-semibold text-text-primary">Cashier Keg Management</p>
+                          <p className="text-[10px] text-text-secondary">Allow cashiers to pour, tap, untap, and register kegs</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            checked={permissionsForm.allowCashierKegManage}
+                            onChange={e => setPermissionsForm({ ...permissionsForm, allowCashierKegManage: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-zinc-900">
+                        <div>
+                          <p className="text-xs font-semibold text-text-primary">Kitchen View Sales</p>
+                          <p className="text-[10px] text-text-secondary">Allow kitchen staff to view sales figures and metrics</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            checked={permissionsForm.allowKitchenViewSales}
+                            onChange={e => setPermissionsForm({ ...permissionsForm, allowKitchenViewSales: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                      </div>
+
+                      <div className="pt-2">
+                        <button 
+                          type="submit"
+                          className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
+                        >
+                          Save Policies
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </Card>
+              )}
+            </div>
 
           </div>
         </div>
