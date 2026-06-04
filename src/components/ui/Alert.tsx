@@ -7,11 +7,11 @@ interface AlertProps {
 export default function Alert({ message }: AlertProps) {
   return (
     <div
-      className="bg-red-950/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg flex items-center shadow-lg"
+      className="bg-rose-500/5 backdrop-blur-md border border-rose-500/20 text-rose-300 px-4 py-3 rounded-xl flex items-center shadow-card max-w-7xl mx-auto"
       role="alert"
     >
-      <AlertTriangle className="h-5 w-5 mr-3 text-red-500 flex-shrink-0" />
-      <span className="block sm:inline text-sm font-medium">{message}</span>
+      <AlertTriangle className="h-4 w-4 mr-3 text-rose-400 flex-shrink-0" />
+      <span className="block sm:inline text-xs font-semibold uppercase tracking-wider">{message}</span>
     </div>
   );
 }

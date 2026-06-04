@@ -10,26 +10,26 @@ interface StatCardProps {
 
 export default function StatCard({ label, value, unit, icon: Icon = Package }: StatCardProps) {
   return (
-    <div className="bg-surface p-4 rounded-lg shadow-card border border-secondary hover:border-primary-dark transition-colors duration-300">
-      <div className="flex items-center">
-        <div className="bg-primary/10 p-2 rounded-full flex-shrink-0">
-          <Icon className="h-5 w-5 text-primary" />
-        </div>
-        <div className="ml-3 min-w-0 flex-1">
+    <div className="bg-surface/50 backdrop-blur-md p-5 rounded-xl shadow-card border border-secondary-light/30 hover:border-primary/30 transition-all duration-500 group">
+      <div className="flex items-center justify-between">
+        <div className="min-w-0 flex-1">
           <p
-            className="text-sm font-medium text-text-secondary line-clamp-2 min-h-[2.5em]"
+            className="text-[10px] font-bold text-text-secondary uppercase tracking-widest truncate"
             title={label}
           >
             {label}
           </p>
-          <p className="text-2xl font-bold text-text-primary truncate">
+          <p className="text-3xl font-display font-bold text-text-primary tracking-wide mt-2">
             {value}{" "}
             {unit && (
-              <span className="text-sm font-medium text-text-muted ml-1">
+              <span className="text-xs font-semibold text-text-muted ml-0.5 lowercase">
                 {unit}
               </span>
             )}
           </p>
+        </div>
+        <div className="bg-secondary-dark/80 border border-secondary p-3 rounded-xl flex-shrink-0 text-text-secondary group-hover:text-primary transition-colors duration-500">
+          <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>

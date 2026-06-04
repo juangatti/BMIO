@@ -1,1 +1,55 @@
-{"version":"7","dialect":"postgresql","entries":[]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1780514004975,
+      "tag": "0000_sharp_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780543926103,
+      "tag": "0001_magenta_supreme_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780545016448,
+      "tag": "0002_illegal_stingray",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780546314523,
+      "tag": "0003_complete_colleen_wing",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780547530695,
+      "tag": "0004_breezy_black_widow",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780548267388,
+      "tag": "0005_marvelous_slyde",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780550440545,
+      "tag": "0006_glorious_carnage",
+      "breakpoints": true
+    }
+  ]
+}
