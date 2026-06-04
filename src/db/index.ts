@@ -1,6 +1,3 @@
-// Disable TLS unauthorized rejection globally for the database connection (resolves self-signed cert chain errors)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";

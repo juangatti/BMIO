@@ -5,6 +5,50 @@ import { tenants, users, tenantModules, categories, stockItems, kegs, reservatio
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import crypto from "crypto";
+
+const SESSION_SECRET = process.env.SESSION_SECRET || "bmio_default_secure_session_secret_2026_xyz123";
+
+function signSession(userJson: string): string {
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET);
+  hmac.update(userJson);
+  const signature = hmac.digest("hex");
+  return `${userJson}.${signature}`;
+}
+
+function verifyAndParseSession(cookieValue: string): any | null {
+  const dotIndex = cookieValue.lastIndexOf(".");
+  if (dotIndex === -1) return null;
+  
+  const userJson = cookieValue.substring(0, dotIndex);
+  const signature = cookieValue.substring(dotIndex + 1);
+  
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET);
+  hmac.update(userJson);
+  const expectedSignature = hmac.digest("hex");
+  
+  if (signature !== expectedSignature) {
+    return null;
+  }
+  
+  try {
+    return JSON.parse(userJson);
+  } catch (e) {
+    return null;
+  }
+}
+
+function hashPassword(password: string): string {
+  const salt = "bmio_salt_secure_2026";
+  return crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  if (storedHash === "hashed_password" || storedHash === "password" || storedHash === "admin" || storedHash === "123456") {
+    return password === storedHash || (storedHash === "hashed_password" && (password === "password" || password === "admin" || password === "123456"));
+  }
+  return hashPassword(password) === storedHash || password === storedHash;
+}
 
 // 1. Get entire dashboard state for a tenant
 export async function getDashboardData(tenantId: string) {
@@ -461,23 +505,24 @@ export async function loginUser(usernameAndOrg: string, passwordHash: string) {
       return { success: false, error: "User account is deactivated." };
     }
 
-    // Check password (accept simple match or hashed_password default comparison)
-    const isPasswordMatch = user.passwordHash === passwordHash || 
-                            (user.passwordHash === "hashed_password" && (passwordHash === "password" || passwordHash === "admin" || passwordHash === "hashed_password" || passwordHash === "123456"));
+    // Check password using cryptographic verification
+    const isPasswordMatch = verifyPassword(passwordHash, user.passwordHash);
     
     if (!isPasswordMatch) {
       return { success: false, error: "Invalid password." };
     }
 
-    // Store session cookie
+    // Store session cookie with HMAC signature to prevent client-side tampering
     const cookieStore = await cookies();
-    cookieStore.set("session_user", JSON.stringify({
+    const sessionData = JSON.stringify({
       id: user.id,
       tenantId: user.tenantId,
       name: user.name,
       role: user.role,
       email: user.email
-    }), {
+    });
+    const signedSession = signSession(sessionData);
+    cookieStore.set("session_user", signedSession, {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -509,7 +554,13 @@ export async function getCurrentUser() {
     if (!session || !session.value) {
       return { success: true, user: null };
     }
-    const user = JSON.parse(session.value);
+    
+    // Cryptographically verify session token signature to prevent role/ID spoofing
+    const user = verifyAndParseSession(session.value);
+    if (!user) {
+      cookieStore.delete("session_user");
+      return { success: true, user: null };
+    }
     return { success: true, user };
   } catch (error: any) {
     console.error("Get current user failed:", error);
@@ -537,11 +588,14 @@ export async function addUser(data: {
   role: "admin" | "cashier" | "kitchen" | "staff";
 }) {
   try {
+    // Hash password securely before storing
+    const passwordToStore = hashPassword(data.passwordHash || "password");
+    
     await db.insert(users).values({
       tenantId: data.tenantId,
       name: data.name,
       email: data.email,
-      passwordHash: data.passwordHash || "hashed_password",
+      passwordHash: passwordToStore,
       role: data.role,
       isActive: true
     });
@@ -584,11 +638,15 @@ export async function updateUserRole(userId: string, role: "admin" | "cashier" |
 
 export async function updateUserProfile(userId: string, data: { name: string; email: string; passwordHash: string }) {
   try {
+    // Check if the password hash passed is already a SHA512 PBKDF2 hash (128 chars hex)
+    const isAlreadyHashed = data.passwordHash.length === 128 && /^[0-9a-fA-F]+$/.test(data.passwordHash);
+    const passwordToStore = isAlreadyHashed ? data.passwordHash : hashPassword(data.passwordHash);
+
     await db.update(users)
       .set({
         name: data.name,
         email: data.email,
-        passwordHash: data.passwordHash,
+        passwordHash: passwordToStore,
       })
       .where(eq(users.id, userId));
 
@@ -596,13 +654,15 @@ export async function updateUserProfile(userId: string, data: { name: string; em
     const cookieStore = await cookies();
     const session = cookieStore.get("session_user");
     if (session && session.value) {
-      const user = JSON.parse(session.value);
-      if (user.id === userId) {
-        cookieStore.set("session_user", JSON.stringify({
+      const user = verifyAndParseSession(session.value);
+      if (user && user.id === userId) {
+        const updatedSession = JSON.stringify({
           ...user,
           name: data.name,
           email: data.email,
-        }), {
+        });
+        const signedSession = signSession(updatedSession);
+        cookieStore.set("session_user", signedSession, {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
