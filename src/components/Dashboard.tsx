@@ -49,6 +49,13 @@ import {
   deleteExpense
 } from "@/db/actions";
 
+const getLedColorClass = (current: number, capacity: number) => {
+  const pct = (current / capacity) * 100;
+  if (pct >= 50) return "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]";
+  if (pct >= 15) return "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]";
+  return "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse";
+};
+
 interface DashboardProps {
   initialData: {
     tenant: any;
@@ -109,6 +116,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
     displayName: localData.tenant?.displayName || "",
     logoUrl: localData.tenant?.logoUrl || "",
     primaryColor: localData.tenant?.primaryColor || "#f59e0b",
+    tapCount: localData.tenant?.tapCount ?? 8,
   });
 
   // New category state
@@ -352,7 +360,8 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
   const totalSalesCents = localData.sales.reduce((acc, sale) => acc + sale.amount, 0);
   const totalSalesUSD = (totalSalesCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-  const activeTaps = Array.from({ length: 8 }, (_, i) => {
+  const tapCount = localData.tenant?.tapCount ?? 8;
+  const activeTaps = Array.from({ length: tapCount }, (_, i) => {
     const tapNum = i + 1;
     const activeKeg = localData.kegs.find(k => k.status === "tapped" && k.tapNumber === tapNum);
     return { tapNum, keg: activeKeg };
@@ -412,6 +421,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
         displayName: brandingForm.displayName || null,
         logoUrl: brandingForm.logoUrl || null,
         primaryColor: brandingForm.primaryColor,
+        tapCount: brandingForm.tapCount,
       });
       if (res.success) {
         alert("Branding updated successfully!");
@@ -546,66 +556,66 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
         
         {/* Navigation Tabs and Session Info */}
         <div className="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
-          <div className="flex flex-wrap gap-1.5 bg-secondary-dark/65 backdrop-blur-md p-1 rounded-xl border border-secondary-light/35">
+          <div className="flex flex-wrap gap-1 bg-zinc-950/80 backdrop-blur-md p-1 rounded-xl border border-zinc-800/40 shadow-inner">
             <button 
               onClick={() => setActiveTab("overview")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "overview" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "overview" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Overview
             </button>
             <button 
               onClick={() => setActiveTab("taps")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "taps" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "taps" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Beer Taps
             </button>
             <button 
               onClick={() => setActiveTab("inventory")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "inventory" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "inventory" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Inventory
             </button>
             <button 
               onClick={() => setActiveTab("financials")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "financials" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "financials" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Financials
             </button>
             <button 
               onClick={() => setActiveTab("expenses")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "expenses" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "expenses" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Expenses
             </button>
             <button 
               onClick={() => setActiveTab("reservations")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "reservations" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "reservations" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Reservations
             </button>
             <button 
               onClick={() => setActiveTab("prebatches")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "prebatches" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "prebatches" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Prebatches
             </button>
             <button 
               onClick={() => setActiveTab("schedules")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "schedules" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "schedules" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Schedules
             </button>
             {currentUser?.role === "admin" && (
               <button 
                 onClick={() => setActiveTab("staff")}
-                className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "staff" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+                className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "staff" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
               >
                 Staff
               </button>
             )}
             <button 
               onClick={() => setActiveTab("settings")}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "settings" ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-secondary-light/20 border-transparent"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border ${activeTab === "settings" ? "bg-zinc-900 text-primary border-zinc-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" : "text-text-secondary hover:text-text-primary hover:bg-zinc-900/50 hover:border-zinc-800/40 border-transparent"}`}
             >
               Settings
             </button>
@@ -667,7 +677,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <StatCard 
                 label="Active Beer Taps" 
                 value={localData.kegs.filter(k => k.status === "tapped").length.toString()} 
-                unit="/ 8 active" 
+                unit={`/ ${tapCount} active`} 
                 icon={Beer} 
               />
               {!(currentUser?.role === 'kitchen' && !allowKitchenViewSales) ? (
@@ -704,25 +714,50 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {activeTaps.map(({ tapNum, keg }) => (
-                        <div key={tapNum} className="bg-secondary-dark p-4 rounded border border-secondary flex flex-col justify-between h-36 relative overflow-hidden group">
+                        <div key={tapNum} className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/40 flex flex-col justify-between h-44 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                           {/* Beer Tap head */}
-                          <div className="flex justify-between items-start">
-                            <span className="text-2xl font-display font-bold text-text-muted">#{tapNum}</span>
-                            <span className={`h-2.5 w-2.5 rounded-full ${keg ? 'bg-amber-500 animate-pulse shadow-[0_0_8px_var(--color-primary)]' : 'bg-secondary'}`} />
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xl font-mono font-bold text-zinc-600">#{tapNum}</span>
+                            <span className={`h-2.5 w-2.5 rounded-full ${keg ? 'bg-amber-500 animate-pulse shadow-[0_0_8px_var(--color-primary)]' : 'bg-zinc-800'}`} />
                           </div>
                           {keg ? (
-                            <div>
-                              <p className="text-sm font-semibold truncate text-text-primary">{keg.name}</p>
-                              <div className="w-full bg-secondary h-2.5 rounded-full mt-2 overflow-hidden border border-secondary-light/20">
+                            <div className="flex flex-1 items-center gap-3">
+                              {/* Metallic Cylinder visualizer */}
+                              <div className="relative w-10 h-24 bg-zinc-900 border border-zinc-800/60 rounded-md overflow-hidden shadow-inner flex-shrink-0">
+                                <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/20 via-transparent to-zinc-950/60 z-20 pointer-events-none" />
+                                <div className="absolute inset-y-0 left-2 w-[1px] bg-white/15 z-20 pointer-events-none" />
                                 <div 
-                                  className="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all duration-500" 
-                                  style={{ width: `${(keg.currentVolume / keg.capacity) * 100}%` }}
-                                />
+                                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 transition-all duration-500"
+                                  style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
+                                >
+                                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-black/30" />
+                                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-amber-400/80 rounded-[50%] -translate-y-[2px] shadow-[0_1px_3px_rgba(251,191,36,0.5)]" />
+                                </div>
+                                <div className="absolute top-0 left-0 right-0 h-2 bg-zinc-800 border-b border-zinc-950/40 rounded-[50%] z-10 shadow-inner" />
+                                <div className="absolute inset-y-1.5 right-1 flex flex-col justify-between text-[6px] font-mono text-zinc-600 z-10 leading-none">
+                                  <span>-</span>
+                                  <span>-</span>
+                                  <span>-</span>
+                                  <span>-</span>
+                                  <span>-</span>
+                                </div>
                               </div>
-                              <p className="text-[10px] text-text-secondary mt-1">{keg.currentVolume.toFixed(1)}L / {keg.capacity}L</p>
+
+                              <div className="min-w-0 flex-1 flex flex-col justify-between h-full py-1">
+                                <div>
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${getLedColorClass(keg.currentVolume, keg.capacity)}`} />
+                                    <p className="text-xs font-semibold truncate text-text-primary" title={keg.name}>{keg.name}</p>
+                                  </div>
+                                  <p className="text-[10px] text-text-secondary font-mono">{keg.currentVolume.toFixed(1)}L / {keg.capacity}L</p>
+                                </div>
+                                <span className="text-[9px] font-mono text-zinc-500 bg-zinc-900/50 border border-zinc-800/40 px-1.5 py-0.5 rounded w-max">
+                                  {((keg.currentVolume / keg.capacity) * 100).toFixed(0)}%
+                                </span>
+                              </div>
                             </div>
                           ) : (
-                            <p className="text-[10px] uppercase tracking-wider text-text-muted text-center my-auto">Empty Tap</p>
+                            <p className="text-[9px] font-mono uppercase tracking-wider text-zinc-600 text-center my-auto">Empty Tap</p>
                           )}
                         </div>
                       ))}
@@ -814,9 +849,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               {!(currentUser?.role === "cashier" && !allowCashierKegManage) && (
                 <button 
                   onClick={() => setShowAddKegModal(true)}
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
-                  <Plus className="w-4 h-4" /> Register New Keg
+                  Register New Keg
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  </span>
                 </button>
               )}
             </div>
@@ -827,32 +867,54 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <div className="lg:col-span-2 space-y-6">
                 <Card>
                   <div className="p-6">
-                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase">Connected Taps (1-8)</h2>
+                    <h2 className="text-lg font-display text-text-primary mb-4 uppercase">Connected Taps (1-{tapCount})</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {activeTaps.map(({ tapNum, keg }) => (
-                        <div key={tapNum} className="bg-secondary-dark p-4 rounded border border-secondary flex flex-col justify-between relative overflow-hidden">
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-lg font-display font-bold text-text-secondary">TAP {tapNum}</span>
+                        <div key={tapNum} className="bg-zinc-950/50 p-5 rounded-2xl border border-zinc-800/40 flex flex-col justify-between relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-sm font-mono font-bold text-zinc-400">TAP {tapNum}</span>
                             {keg ? (
-                              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded uppercase font-mono">Tapped</span>
+                              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded uppercase font-mono">Active</span>
                             ) : (
-                              <span className="text-[10px] bg-secondary text-text-muted px-2 py-0.5 rounded uppercase font-mono">Idle</span>
+                              <span className="text-[10px] bg-zinc-900 text-zinc-500 px-2 py-0.5 rounded uppercase font-mono">Idle</span>
                             )}
                           </div>
 
                           {keg ? (
-                            <div className="space-y-3">
-                              <div>
-                                <h3 className="text-sm font-semibold text-text-primary">{keg.name}</h3>
-                                <div className="w-full bg-secondary h-2.5 rounded-full mt-2 overflow-hidden border border-secondary-light/20">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-4">
+                                {/* Metallic Cylinder visualizer */}
+                                <div className="relative w-12 h-28 bg-zinc-900 border border-zinc-800/60 rounded-lg overflow-hidden shadow-inner flex-shrink-0">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/20 via-transparent to-zinc-950/60 z-20 pointer-events-none" />
+                                  <div className="absolute inset-y-0 left-2 w-[1px] bg-white/15 z-20 pointer-events-none" />
                                   <div 
-                                    className="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all duration-500" 
-                                    style={{ width: `${(keg.currentVolume / keg.capacity) * 100}%` }}
-                                  />
+                                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 transition-all duration-500"
+                                    style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
+                                  >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-black/30" />
+                                    <div className="absolute top-0 left-0 right-0 h-2 bg-amber-400/80 rounded-[50%] -translate-y-1 shadow-[0_1px_3px_rgba(251,191,36,0.5)]" />
+                                  </div>
+                                  <div className="absolute top-0 left-0 right-0 h-2.5 bg-zinc-800 border-b border-zinc-950/40 rounded-[50%] z-10 shadow-inner" />
+                                  <div className="absolute inset-y-2 right-1.5 flex flex-col justify-between text-[6px] font-mono text-zinc-500 z-10 leading-none">
+                                    <span>100</span>
+                                    <span>75</span>
+                                    <span>50</span>
+                                    <span>25</span>
+                                    <span>0</span>
+                                  </div>
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] text-text-secondary mt-1">
-                                  <span>{keg.currentVolume.toFixed(1)}L remaining</span>
-                                  <span>{((keg.currentVolume / keg.capacity) * 100).toFixed(0)}%</span>
+
+                                <div className="flex-1 min-w-0 py-1">
+                                  <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className={`h-2 w-2 rounded-full shrink-0 ${getLedColorClass(keg.currentVolume, keg.capacity)}`} />
+                                    <h3 className="text-sm font-semibold truncate text-text-primary" title={keg.name}>{keg.name}</h3>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-[10px] text-text-secondary font-mono">{keg.currentVolume.toFixed(1)}L / {keg.capacity}L remaining</p>
+                                    <span className="inline-block text-[9px] font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded shadow-sm">
+                                      {((keg.currentVolume / keg.capacity) * 100).toFixed(0)}% Fill
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
@@ -860,7 +922,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                                 <button 
                                   onClick={() => handlePour(keg.id)}
                                   disabled={keg.currentVolume <= 0 || (currentUser?.role === "cashier" && !allowCashierKegManage)}
-                                  className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-secondary disabled:text-text-muted text-secondary-dark py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                                  className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-secondary-dark py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                                 >
                                   Pour {pouringLiters}L
                                 </button>
@@ -868,13 +930,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                                   <>
                                     <button 
                                       onClick={() => handleUntapping(keg.id)}
-                                      className="bg-secondary-light hover:bg-zinc-600 text-text-primary px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                                      className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                                     >
                                       Untap
                                     </button>
                                     <button 
                                       onClick={() => handleEmpty(keg.id)}
-                                      className="border border-rose-500/30 hover:bg-rose-500/10 text-rose-400 px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                                      className="border border-rose-500/30 hover:bg-rose-500/10 text-rose-400 px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                                     >
                                       Empty
                                     </button>
@@ -978,9 +1040,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <span className="text-xs uppercase tracking-wider text-text-secondary">Stock Inventory List</span>
               <button 
                 onClick={() => setShowAddStockModal(true)}
-                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shadow-md hover:shadow-primary/10 border border-primary/20"
               >
-                <Plus className="w-4 h-4" /> Add Item
+                Add Item
+                <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </span>
               </button>
             </div>
 
@@ -1290,12 +1357,22 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                       {/* Tooltip */}
                       {hoveredPoint && (
                         <div 
-                          className="absolute bg-secondary-dark border border-secondary p-3 rounded-lg shadow-xl text-xs z-10 pointer-events-none"
-                          style={{ left: `${hoveredPoint.x}px`, top: `${hoveredPoint.y - 65}px`, transform: 'translateX(-50%)' }}
+                          className="absolute bg-zinc-950/85 backdrop-blur-md border border-zinc-800/60 p-3 rounded-xl shadow-2xl text-xs z-20 pointer-events-none transition-all duration-300 ease-out border-t-zinc-700/30"
+                          style={{ left: `${hoveredPoint.x}px`, top: `${hoveredPoint.y - 75}px`, transform: 'translateX(-50%)' }}
                         >
-                          <p className="font-semibold text-[10px] text-text-secondary uppercase">{hoveredPoint.label}</p>
-                          <p className="text-primary mt-1">Revenue: <span className="font-mono font-bold">${hoveredPoint.revenue.toFixed(2)}</span></p>
-                          <p className="text-rose-400">Expense: <span className="font-mono font-bold">${hoveredPoint.expense.toFixed(2)}</span></p>
+                          <p className="font-mono text-[9px] text-zinc-500 uppercase tracking-wider mb-1.5">{hoveredPoint.label}</p>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 text-primary">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_4px_rgba(245,158,11,0.6)]" />
+                              <span className="font-semibold text-[10px]">Rev:</span>
+                              <span className="font-mono font-bold text-zinc-100">${hoveredPoint.revenue.toFixed(2)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-rose-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.6)]" />
+                              <span className="font-semibold text-[10px]">Exp:</span>
+                              <span className="font-mono font-bold text-zinc-100">${hoveredPoint.expense.toFixed(2)}</span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
@@ -1311,7 +1388,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                                 y1={y} 
                                 x2={width - padding} 
                                 y2={y} 
-                                stroke="var(--color-secondary)" 
+                                className="stroke-zinc-800/40" 
                                 strokeWidth={0.5} 
                                 strokeDasharray="4 4"
                               />
@@ -1383,7 +1460,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                               cx={p.x} 
                               cy={p.y} 
                               r={4} 
-                              className="fill-secondary-dark stroke-primary stroke-2 cursor-pointer hover:r-6 transition-all duration-200"
+                              className="fill-zinc-950 stroke-primary stroke-2 cursor-pointer hover:r-6 transition-all duration-200"
                               onMouseEnter={() => setHoveredPoint({ x: p.x, y: p.y, label: p.date, revenue: p.rawRevenue, expense: p.rawExpense })}
                               onMouseLeave={() => setHoveredPoint(null)}
                             />
@@ -1391,7 +1468,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                               cx={expensePoints[i].x} 
                               cy={expensePoints[i].y} 
                               r={4} 
-                              className="fill-secondary-dark stroke-rose-500 stroke-2 cursor-pointer hover:r-6 transition-all duration-200"
+                              className="fill-zinc-950 stroke-rose-500 stroke-2 cursor-pointer hover:r-6 transition-all duration-200"
                               onMouseEnter={() => setHoveredPoint({ x: expensePoints[i].x, y: expensePoints[i].y, label: p.date, revenue: p.rawRevenue, expense: p.rawExpense })}
                               onMouseLeave={() => setHoveredPoint(null)}
                             />
@@ -1543,13 +1620,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     placeholder="Search supplier, description, invoice..." 
                     value={expenseSearch} 
                     onChange={e => setExpenseSearch(e.target.value)}
-                    className="bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none flex-1 min-w-[200px]"
+                    className="bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 flex-1 min-w-[200px]"
                   />
                   {/* Category Filter */}
                   <select 
                     value={expenseCatFilter} 
                     onChange={e => setExpenseCatFilter(e.target.value)}
-                    className="bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none min-w-[120px]"
+                    className="bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 min-w-[120px]"
                   >
                     <option value="All">All Categories</option>
                     {categoriesList.map(cat => (
@@ -1560,7 +1637,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   <select 
                     value={expenseStatusFilter} 
                     onChange={e => setExpenseStatusFilter(e.target.value)}
-                    className="bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none min-w-[120px]"
+                    className="bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 min-w-[120px]"
                   >
                     <option value="All">All Statuses</option>
                     <option value="Paid">Paid</option>
@@ -1569,9 +1646,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 </div>
                 <button 
                   onClick={() => setShowAddExpenseModal(true)}
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 shrink-0 justify-center"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shrink-0 justify-center shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
-                  <Plus className="w-4 h-4" /> Log Expense
+                  Log Expense
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  </span>
                 </button>
               </div>
 
@@ -1645,9 +1727,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <span className="text-xs uppercase tracking-wider text-text-secondary">Customer Bookings List</span>
               <button 
                 onClick={() => setShowAddReservationModal(true)}
-                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shadow-md hover:shadow-primary/10 border border-primary/20"
               >
-                <Plus className="w-4 h-4" /> New Booking
+                New Booking
+                <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </span>
               </button>
             </div>
 
@@ -1707,9 +1794,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <span className="text-xs uppercase tracking-wider text-text-secondary">Internal Prebatches / Custom Mixes</span>
               <button 
                 onClick={() => setShowAddPrebatchModal(true)}
-                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shadow-md hover:shadow-primary/10 border border-primary/20"
               >
-                <Plus className="w-4 h-4" /> Prep New Batch
+                Prep New Batch
+                <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </span>
               </button>
             </div>
 
@@ -1798,9 +1890,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <span className="text-xs uppercase tracking-wider text-text-secondary">Work Schedules & Staff Shifts</span>
               <button 
                 onClick={() => setShowAddScheduleModal(true)}
-                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-2 shadow-md hover:shadow-primary/10 border border-primary/20"
               >
-                <Plus className="w-4 h-4" /> Add Shift
+                Add Shift
+                <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/10 p-0.5 ml-1">
+                  <span className="inline-flex items-center justify-center rounded-full bg-secondary-dark/15 p-0.5">
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </span>
               </button>
             </div>
 
@@ -1978,7 +2075,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newSchedule.userId} 
                   onChange={e => setNewSchedule({...newSchedule, userId: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 >
                   <option value="">Select Staff</option>
                   {localData.users.map(u => (
@@ -1994,7 +2091,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newSchedule.workDate} 
                   onChange={e => setNewSchedule({...newSchedule, workDate: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2006,7 +2103,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newSchedule.startTime} 
                     onChange={e => setNewSchedule({...newSchedule, startTime: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                     placeholder="18:00"
                   />
                 </div>
@@ -2017,7 +2114,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newSchedule.endTime} 
                     onChange={e => setNewSchedule({...newSchedule, endTime: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                     placeholder="02:00"
                   />
                 </div>
@@ -2028,7 +2125,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <textarea 
                   value={newSchedule.notes} 
                   onChange={e => setNewSchedule({...newSchedule, notes: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none h-20"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 h-20"
                   placeholder="Specific tasks, counter assignment, etc."
                 />
               </div>
@@ -2037,13 +2134,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddScheduleModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Save Shift
                 </button>
@@ -2066,7 +2163,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newStockItem.name} 
                   onChange={e => setNewStockItem({...newStockItem, name: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   placeholder="e.g. Gin Beefeater 750ml"
                 />
               </div>
@@ -2077,7 +2174,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newStockItem.categoryId} 
                   onChange={e => setNewStockItem({...newStockItem, categoryId: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 >
                   <option value="">Select Category</option>
                   {localData.categories.map(c => (
@@ -2094,7 +2191,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     step="any"
                     value={newStockItem.quantity} 
                     onChange={e => setNewStockItem({...newStockItem, quantity: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2104,7 +2201,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newStockItem.unit} 
                     onChange={e => setNewStockItem({...newStockItem, unit: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     placeholder="units, bottles, cans, etc."
                   />
                 </div>
@@ -2118,7 +2215,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     step="any"
                     value={newStockItem.minStock} 
                     onChange={e => setNewStockItem({...newStockItem, minStock: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2128,7 +2225,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     step="0.01"
                     value={newStockItem.price} 
                     onChange={e => setNewStockItem({...newStockItem, price: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
               </div>
@@ -2137,13 +2234,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddStockModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Create
                 </button>
@@ -2166,7 +2263,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newRes.customerName} 
                   onChange={e => setNewRes({...newRes, customerName: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   placeholder="Carlos Gardel"
                 />
               </div>
@@ -2180,7 +2277,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newRes.pax} 
                     onChange={e => setNewRes({...newRes, pax: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2190,7 +2287,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newRes.tableNumber} 
                     onChange={e => setNewRes({...newRes, tableNumber: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     placeholder="Table 14"
                   />
                 </div>
@@ -2203,7 +2300,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newRes.reservationDate} 
                   onChange={e => setNewRes({...newRes, reservationDate: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2212,7 +2309,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <textarea 
                   value={newRes.notes} 
                   onChange={e => setNewRes({...newRes, notes: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none h-20"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 h-20"
                   placeholder="Prefers quiet zone, allergy notifications..."
                 />
               </div>
@@ -2221,13 +2318,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddReservationModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Create Booking
                 </button>
@@ -2266,7 +2363,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newKeg.name} 
                   onChange={e => setNewKeg({...newKeg, name: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   placeholder="e.g. Irish Stout"
                 />
               </div>
@@ -2279,7 +2376,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newKeg.capacity} 
                     onChange={e => setNewKeg({...newKeg, capacity: Number(e.target.value), currentVolume: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2289,7 +2386,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newKeg.currentVolume} 
                     onChange={e => setNewKeg({...newKeg, currentVolume: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
               </div>
@@ -2298,13 +2395,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddKegModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Register
                 </button>
@@ -2326,7 +2423,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   required
                   value={newPrebatch.name} 
                   onChange={e => setNewPrebatch({...newPrebatch, name: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   placeholder="e.g. Negroni Mix 10L"
                 />
               </div>
@@ -2336,7 +2433,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <select 
                   value={newPrebatch.categoryId} 
                   onChange={e => setNewPrebatch({...newPrebatch, categoryId: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 >
                   <option value="">No Category</option>
                   {localData.categories.map(c => (
@@ -2353,7 +2450,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newPrebatch.initialQuantityMl} 
                     onChange={e => setNewPrebatch({...newPrebatch, initialQuantityMl: Number(e.target.value)})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2362,7 +2459,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     type="text" 
                     value={newPrebatch.batchId} 
                     onChange={e => setNewPrebatch({...newPrebatch, batchId: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     placeholder="NEG-042"
                   />
                 </div>
@@ -2376,7 +2473,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     required
                     value={newPrebatch.productionDate} 
                     onChange={e => setNewPrebatch({...newPrebatch, productionDate: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -2385,7 +2482,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     type="datetime-local" 
                     value={newPrebatch.expirationDate} 
                     onChange={e => setNewPrebatch({...newPrebatch, expirationDate: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   />
                 </div>
               </div>
@@ -2394,13 +2491,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddPrebatchModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Create Batch
                 </button>
@@ -2417,7 +2514,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             <span className="text-xs uppercase tracking-wider text-text-secondary">Staff Member Accounts</span>
             <button 
               onClick={() => setShowAddUserModal(true)}
-              className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+              className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" /> Add Staff Member
             </button>
@@ -2489,7 +2586,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                       placeholder="Your Name"
                       value={profileForm.name}
                       onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
-                      className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     />
                   </div>
 
@@ -2501,7 +2598,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                       placeholder="yourname@domain.com"
                       value={profileForm.email}
                       onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
-                      className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     />
                   </div>
 
@@ -2512,14 +2609,14 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                       placeholder="••••••••"
                       value={profileForm.password}
                       onChange={e => setProfileForm({ ...profileForm, password: e.target.value })}
-                      className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     />
                   </div>
 
                   <div className="pt-2">
                     <button 
                       type="submit"
-                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                     >
                       Save Profile Changes
                     </button>
@@ -2543,7 +2640,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                         placeholder="e.g. Gatto Bar"
                         value={brandingForm.displayName}
                         onChange={e => setBrandingForm({ ...brandingForm, displayName: e.target.value })}
-                        className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                       />
                     </div>
 
@@ -2554,7 +2651,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                         placeholder="e.g. https://domain.com/logo.png"
                         value={brandingForm.logoUrl}
                         onChange={e => setBrandingForm({ ...brandingForm, logoUrl: e.target.value })}
-                        className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                       />
                     </div>
 
@@ -2573,15 +2670,28 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                           placeholder="#f59e0b"
                           value={brandingForm.primaryColor}
                           onChange={e => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
-                          className="flex-1 bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                          className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] uppercase text-text-secondary mb-1">Available Taps Count</label>
+                      <input 
+                        type="number"
+                        min="3"
+                        max="12"
+                        required
+                        value={brandingForm.tapCount}
+                        onChange={e => setBrandingForm({ ...brandingForm, tapCount: parseInt(e.target.value) || 8 })}
+                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
+                      />
                     </div>
 
                     <div className="pt-2">
                       <button 
                         type="submit"
-                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                       >
                         Apply Branding
                       </button>
@@ -2605,11 +2715,11 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                       placeholder="Category Name (e.g. Craft Beer, Cocktails)"
                       value={newCategoryName}
                       onChange={e => setNewCategoryName(e.target.value)}
-                      className="flex-1 bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                      className="flex-1 bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                     />
                     <button 
                       type="submit"
-                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1"
+                      className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20 flex items-center gap-1"
                     >
                       <Plus className="w-4 h-4" /> Add
                     </button>
@@ -2696,7 +2806,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     <div className="pt-2">
                       <button 
                         type="submit"
-                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                        className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                       >
                         Save Policies
                       </button>
@@ -2724,7 +2834,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   placeholder="Sofia Bartender"
                   value={newUser.name} 
                   onChange={e => setNewUser({...newUser, name: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2736,7 +2846,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   placeholder="sofia@gattobar.com"
                   value={newUser.email} 
                   onChange={e => setNewUser({...newUser, email: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2748,7 +2858,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   placeholder="password"
                   value={newUser.password} 
                   onChange={e => setNewUser({...newUser, password: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2757,7 +2867,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <select 
                   value={newUser.role} 
                   onChange={e => setNewUser({...newUser, role: e.target.value as any})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 >
                   <option value="staff">Staff / Bartender</option>
                   <option value="cashier">Cashier / Caja</option>
@@ -2770,13 +2880,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddUserModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Add Account
                 </button>
@@ -2802,7 +2912,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     placeholder="25.50"
                     value={newExpense.amount} 
                     onChange={e => setNewExpense({...newExpense, amount: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                   />
                 </div>
 
@@ -2811,7 +2921,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   <select 
                     value={newExpense.category} 
                     onChange={e => setNewExpense({...newExpense, category: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   >
                     <option value="Inventory">Inventory</option>
                     <option value="Utilities">Utilities</option>
@@ -2831,7 +2941,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   placeholder="e.g. Heineken Distributor"
                   value={newExpense.supplierName} 
                   onChange={e => setNewExpense({...newExpense, supplierName: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2843,7 +2953,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   placeholder="e.g. Purchase of 5 craft beer kegs"
                   value={newExpense.description} 
                   onChange={e => setNewExpense({...newExpense, description: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                 />
               </div>
 
@@ -2855,7 +2965,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                     placeholder="INV-2026-001"
                     value={newExpense.invoiceNumber} 
                     onChange={e => setNewExpense({...newExpense, invoiceNumber: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                   />
                 </div>
 
@@ -2864,7 +2974,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   <select 
                     value={newExpense.status} 
                     onChange={e => setNewExpense({...newExpense, status: e.target.value})}
-                    className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none"
+                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300"
                   >
                     <option value="Pending">Pending / Unpaid</option>
                     <option value="Paid">Paid</option>
@@ -2878,7 +2988,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                   type="date" 
                   value={newExpense.dueDate} 
                   onChange={e => setNewExpense({...newExpense, dueDate: e.target.value})}
-                  className="w-full bg-secondary-dark border border-secondary text-text-primary rounded p-2 text-xs focus:border-primary outline-none font-mono"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-primary/50 text-text-primary rounded-xl p-2 text-xs focus:ring-1 focus:ring-primary/20 outline-none transition-all duration-300 font-mono"
                 />
               </div>
 
@@ -2886,13 +2996,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 <button 
                   type="button" 
                   onClick={() => setShowAddExpenseModal(false)}
-                  className="bg-secondary hover:bg-secondary-light text-text-primary px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-750 text-text-primary px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)]"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+                  className="bg-primary hover:bg-primary-dark text-secondary-dark px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-[0.98] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md hover:shadow-primary/10 border border-primary/20"
                 >
                   Log Expense
                 </button>

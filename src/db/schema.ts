@@ -12,6 +12,7 @@ export const tenants = pgTable("tenants", {
   primaryColor: text("primary_color").default("#f59e0b").notNull(),
   logoUrl: text("logo_url"),
   displayName: text("display_name"),
+  tapCount: integer("tap_count").default(8).notNull(),
 });
 
 // 2. Users Table

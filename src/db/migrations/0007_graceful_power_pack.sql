@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "tap_count" integer DEFAULT 8 NOT NULL;

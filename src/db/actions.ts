@@ -620,13 +620,14 @@ export async function updateUserProfile(userId: string, data: { name: string; em
   }
 }
 
-export async function updateTenantBranding(tenantId: string, data: { primaryColor: string; logoUrl: string | null; displayName: string | null }) {
+export async function updateTenantBranding(tenantId: string, data: { primaryColor: string; logoUrl: string | null; displayName: string | null; tapCount: number }) {
   try {
     await db.update(tenants)
       .set({
         primaryColor: data.primaryColor,
         logoUrl: data.logoUrl,
         displayName: data.displayName,
+        tapCount: data.tapCount,
       })
       .where(eq(tenants.id, tenantId));
 
