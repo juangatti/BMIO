@@ -570,12 +570,12 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
       {/* Sidebar (Left Navigation Column) */}
       <aside className="w-16 hover:w-64 bg-zinc-950 border-r border-zinc-900/60 flex flex-col shrink-0 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group fixed md:sticky top-0 bottom-0 h-screen select-none z-40">
         {/* Top Section: App Brand */}
-        <div className="h-14 border-b border-zinc-900/60 flex items-center px-4 md:px-6 gap-3 shrink-0">
+        <div className="h-16 border-b border-zinc-900/60 flex items-center px-4 md:px-6 gap-3 shrink-0">
           {localData.tenant?.logoUrl ? (
-            <img src={localData.tenant.logoUrl} alt="Logo" className="w-6 h-6 object-contain rounded-lg shrink-0" />
+            <img src={localData.tenant.logoUrl} alt="Logo" className="w-8 h-8 object-contain rounded-lg shrink-0" />
           ) : (
-            <div className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 text-primary shrink-0">
-              <Beer className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <Beer className="w-4.5 h-4.5" />
             </div>
           )}
           <div className="hidden group-hover:flex flex-col min-w-0 flex-1 truncate">
@@ -591,7 +591,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
         </div>
 
         {/* Middle Section: Navigation Items */}
-        <nav className="flex-1 py-4 overflow-y-auto px-2 md:px-3 space-y-1">
+        <nav className="flex-1 py-4 overflow-y-auto px-2 md:px-3 space-y-1.5">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -599,7 +599,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as typeof activeTab)}
-                className={`w-full flex items-center justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 relative group ${
+                className={`w-full flex items-center justify-start gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 relative group ${
                   isActive
                     ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40 border border-transparent"
@@ -608,7 +608,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 {isActive && (
                   <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-primary animate-pulse" />
                 )}
-                <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-400"}`} />
+                <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-400"}`} />
                 <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 truncate whitespace-nowrap hidden group-hover:inline">{item.label}</span>
               </button>
             );
@@ -619,12 +619,12 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
       {/* Main Content Outer Container */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-hidden">
         {/* Topbar Header (Right Top) */}
-        <header className="h-14 border-b border-zinc-900/60 bg-zinc-950/40 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
+        <header className="h-16 border-b border-zinc-900/60 bg-zinc-950/40 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
           {/* Left side: Breadcrumbs */}
-          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-zinc-400">
             <span className="hover:text-zinc-200 transition-colors">Dashboard</span>
             <span className="text-zinc-600">/</span>
-            <span className="text-primary font-semibold font-mono tracking-wide uppercase">{formatBreadcrumb(activeTab)}</span>
+            <span className="text-primary font-bold font-mono tracking-wide uppercase">{formatBreadcrumb(activeTab)}</span>
           </div>
 
           {/* Right side: Logout & User Profile */}
@@ -635,13 +635,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                 await logoutUser();
                 window.location.reload();
               }}
-              className="text-[10px] bg-zinc-900 hover:bg-zinc-800 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-500/20 px-2.5 py-1 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
+              className="text-[11px] bg-zinc-900 hover:bg-zinc-800 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-500/20 px-3.5 py-1.5 rounded-lg font-bold uppercase transition-all duration-300 cursor-pointer"
             >
               Logout
             </button>
 
             {/* Vertical border line separator */}
-            <div className="w-[1px] h-5 bg-zinc-900" />
+            <div className="w-[1px] h-6 bg-zinc-900" />
 
             {/* User profile */}
             <div 
@@ -649,12 +649,12 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
               className="flex items-center gap-2 hover:bg-zinc-900 px-2 py-1 rounded-lg cursor-pointer transition-colors group"
               title="Go to Settings"
             >
-              <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors shrink-0">
-                <span className="text-[11px] font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
+              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors shrink-0">
+                <span className="text-xs font-bold font-mono">{(currentUser?.name || "U").substring(0, 1).toUpperCase()}</span>
               </div>
               <div className="hidden sm:block text-left min-w-0">
-                <p className="text-xs font-semibold text-zinc-200 group-hover:text-primary transition-colors truncate max-w-[100px]">{currentUser?.name || "User"}</p>
-                <p className="text-[9px] text-zinc-500 font-mono leading-none capitalize">{currentUser?.role || "Staff"}</p>
+                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-primary transition-colors truncate max-w-[100px]">{currentUser?.name || "User"}</p>
+                <p className="text-[10px] text-zinc-500 font-mono leading-none capitalize">{currentUser?.role || "Staff"}</p>
               </div>
             </div>
           </div>
