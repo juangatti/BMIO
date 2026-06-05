@@ -2,11 +2,13 @@ require("./load-env");
 const { Client } = require('pg');
 
 const connectionString = process.env.DATABASE_URL;
+// Remove sslmode query parameter to prevent pg from overriding our manual SSL config
+const cleanConnectionString = connectionString.replace(/[\?&]sslmode=[^&]+/, "");
 
-console.log("Connecting to:", connectionString.replace(/:[^:@]+@/, ':****@'));
+console.log("Connecting to:", cleanConnectionString.replace(/:[^:@]+@/, ':****@'));
 
 const client = new Client({
-  connectionString: connectionString,
+  connectionString: cleanConnectionString,
   ssl: {
     rejectUnauthorized: false
   }

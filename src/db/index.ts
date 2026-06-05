@@ -4,8 +4,10 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/bar_manager";
 
+const cleanConnectionString = connectionString.replace(/[\?&]sslmode=[^&]+/, "");
+
 const pool = new Pool({
-  connectionString,
+  connectionString: cleanConnectionString,
   ssl: {
     rejectUnauthorized: false,
   },
