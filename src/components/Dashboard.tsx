@@ -734,24 +734,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                           </div>
                           {keg ? (
                             <div className="flex flex-1 items-center gap-3">
-                              {/* Metallic Cylinder visualizer */}
-                              <div className="relative w-10 h-24 bg-zinc-900 border border-zinc-800/60 rounded-md overflow-hidden shadow-inner flex-shrink-0">
-                                <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/20 via-transparent to-zinc-950/60 z-20 pointer-events-none" />
-                                <div className="absolute inset-y-0 left-2 w-[1px] bg-white/15 z-20 pointer-events-none" />
-                                <div 
-                                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 transition-all duration-500"
-                                  style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
-                                >
-                                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-black/30" />
-                                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-amber-400/80 rounded-[50%] -translate-y-[2px] shadow-[0_1px_3px_rgba(251,191,36,0.5)]" />
-                                </div>
-                                <div className="absolute top-0 left-0 right-0 h-2 bg-zinc-800 border-b border-zinc-950/40 rounded-[50%] z-10 shadow-inner" />
-                                <div className="absolute inset-y-1.5 right-1 flex flex-col justify-between text-[6px] font-mono text-zinc-600 z-10 leading-none">
-                                  <span>-</span>
-                                  <span>-</span>
-                                  <span>-</span>
-                                  <span>-</span>
-                                  <span>-</span>
+                              {/* Simple Flat Vertical Progress Bar */}
+                              <div className="relative w-4 h-24 bg-zinc-900 border border-zinc-800/60 rounded-full overflow-hidden flex-shrink-0 p-[2px]">
+                                <div className="h-full w-full bg-zinc-950 rounded-full overflow-hidden relative">
+                                  <div 
+                                    className="absolute bottom-0 left-0 right-0 bg-primary transition-all duration-500 rounded-full"
+                                    style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
+                                  />
                                 </div>
                               </div>
 
@@ -895,24 +884,13 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
                           {keg ? (
                             <div className="space-y-4">
                               <div className="flex items-center gap-4">
-                                {/* Metallic Cylinder visualizer */}
-                                <div className="relative w-12 h-28 bg-zinc-900 border border-zinc-800/60 rounded-lg overflow-hidden shadow-inner flex-shrink-0">
-                                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/20 via-transparent to-zinc-950/60 z-20 pointer-events-none" />
-                                  <div className="absolute inset-y-0 left-2 w-[1px] bg-white/15 z-20 pointer-events-none" />
-                                  <div 
-                                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 transition-all duration-500"
-                                    style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
-                                  >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-black/30" />
-                                    <div className="absolute top-0 left-0 right-0 h-2 bg-amber-400/80 rounded-[50%] -translate-y-1 shadow-[0_1px_3px_rgba(251,191,36,0.5)]" />
-                                  </div>
-                                  <div className="absolute top-0 left-0 right-0 h-2.5 bg-zinc-800 border-b border-zinc-950/40 rounded-[50%] z-10 shadow-inner" />
-                                  <div className="absolute inset-y-2 right-1.5 flex flex-col justify-between text-[6px] font-mono text-zinc-500 z-10 leading-none">
-                                    <span>100</span>
-                                    <span>75</span>
-                                    <span>50</span>
-                                    <span>25</span>
-                                    <span>0</span>
+                                {/* Simple Flat Vertical Progress Bar */}
+                                <div className="relative w-4 h-28 bg-zinc-900 border border-zinc-800/60 rounded-full overflow-hidden flex-shrink-0 p-[2px]">
+                                  <div className="h-full w-full bg-zinc-950 rounded-full overflow-hidden relative">
+                                    <div 
+                                      className="absolute bottom-0 left-0 right-0 bg-primary transition-all duration-500 rounded-full"
+                                      style={{ height: `${(keg.currentVolume / keg.capacity) * 100}%` }}
+                                    />
                                   </div>
                                 </div>
 
