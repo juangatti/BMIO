@@ -28,6 +28,36 @@
 
 ---
 
+## Codebase Architecture (Atomic Design & Modular Server Actions)
+
+The codebase is organized following **Atomic Design** principles for frontend React components and **Domain-Driven Modules** for backend database server actions:
+
+### 1. Frontend Component Structure (`src/components/`)
+*   **Atoms** (`src/components/atoms/`): Context-free, styling-only primitive controls (e.g. `Button`, `Input`, `Select`, `Textarea`, `LedIndicator`).
+*   **Molecules** (`src/components/molecules/`): Basic UI aggregates combining atoms (e.g. `TabButton`, `Breadcrumb`, `StatusBadge`).
+*   **Organisms** (`src/components/organisms/`): Highly contextual widgets and layouts (e.g. `Sidebar`, `Topbar`, `StockTable`, `MovementsTable`, `SVGCharts`, `BulkImportModal`, `IngredientDetailCard`).
+    *   *Tabs* (`src/components/organisms/tabs/`): Domain controllers rendering views for each specific workspace tab (`OverviewTab`, `TapsTab`, `InventoryTab`, `FinancialsTab`, etc.).
+*   **Templates** (`src/components/templates/`): Page layout layouts wrapping the viewport (`DashboardShell`).
+*   **Coordinator** (`src/components/Dashboard.tsx`): Main client page container orchestrating active tabs, state transitions, client-side events, and database actions.
+
+### 2. Modular Server Actions (`src/db/actions/`)
+All backend operations are separated into domain actions to maintain clean files, split by responsibilities:
+*   🔑 `auth.ts`: Handles user profiles, logins, and permission roles.
+*   🏬 `tenant.ts`: Manages multi-tenant configurations, tap counts, and RBAC flags.
+*   📦 `stock.ts`: Manages inventory adjustments and spreadsheet imports.
+*   🛢️ `keg.ts`: Beer tap pours and barrel replacements.
+*   📅 `reservation.ts`: Table reservation schedules.
+*   💸 `expense.ts`: Log sheets for invoices and bills.
+*   🏺 `prebatch.ts`: Pre-mixes shelf-life and volume tracking.
+*   ⏰ `schedule.ts`: Staff shifts planning.
+*   💰 `sales.ts`: Sales register transaction entries.
+*   🏷️ `category.ts`: Spend/product categories.
+*   📊 `dashboard.ts`: High-performance aggregated metrics loader.
+
+To preserve backward compatibility, `src/db/actions.ts` acts as the single entry point, explicitly re-exporting all functions. Core cryptographic hashing functions are kept in a separate standard module `src/db/auth-utils.ts` to prevent Next.js Turbopack server-action compilation issues.
+
+---
+
 ## Technology Stack
 
 *   **Framework**: Next.js (App Router, Server Actions)
