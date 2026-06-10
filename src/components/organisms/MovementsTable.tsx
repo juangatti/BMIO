@@ -41,9 +41,9 @@ export default function MovementsTable({
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn flex flex-col h-full">
       {/* Header / Filter bar */}
-      <div className="bg-zinc-950/40 p-4 rounded-2xl border border-zinc-900/60 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+      <div className="pb-5 border-b border-zinc-800/60 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-text-primary">
             Stock Movements Audit
@@ -74,53 +74,51 @@ export default function MovementsTable({
       </div>
 
       {/* Logs Table */}
-      <Card>
-        <div className="overflow-x-auto">
-          {filteredMovements.length === 0 ? (
-            <p className="text-xs text-text-secondary p-8 text-center uppercase tracking-wider">
-              No matching stock movements found.
-            </p>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/40 text-[10px] text-text-secondary uppercase tracking-wider">
-                  <th className="p-4">Item Name</th>
-                  <th className="p-4">Type</th>
-                  <th className="p-4">Quantity Change</th>
-                  <th className="p-4">Reason</th>
-                  <th className="p-4">User</th>
-                  <th className="p-4">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-900">
-                {filteredMovements.map((movement) => {
-                  const item = stockItems.find((si) => si.id === movement.stockItemId);
-                  const user = users.find((u) => u.id === movement.userId);
+      <div className="overflow-x-auto flex-1">
+        {filteredMovements.length === 0 ? (
+          <p className="text-xs text-text-secondary p-8 text-center uppercase tracking-wider">
+            No matching stock movements found.
+          </p>
+        ) : (
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-zinc-800 bg-zinc-900/40 text-[10px] text-text-secondary uppercase tracking-wider">
+                <th className="p-4">Item Name</th>
+                <th className="p-4">Type</th>
+                <th className="p-4">Quantity Change</th>
+                <th className="p-4">Reason</th>
+                <th className="p-4">User</th>
+                <th className="p-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-900">
+              {filteredMovements.map((movement) => {
+                const item = stockItems.find((si) => si.id === movement.stockItemId);
+                const user = users.find((u) => u.id === movement.userId);
 
-                  return (
-                    <tr key={movement.id} className="hover:bg-zinc-900/20 transition-colors">
-                      <td className="p-4 text-xs font-semibold text-text-primary">
-                        {item?.name || "Deleted Item"}
-                      </td>
-                      <td className="p-4">
-                        <StatusBadge status={movement.type} />
-                      </td>
-                      <td className="p-4 text-xs font-mono font-bold text-text-primary">
-                        {formatQty(movement.quantity, movement.type)} {item?.unit || ""}
-                      </td>
-                      <td className="p-4 text-xs text-text-secondary">{movement.reason}</td>
-                      <td className="p-4 text-xs text-text-secondary">{user?.name || "System"}</td>
-                      <td className="p-4 text-xs text-text-muted font-mono">
-                        {new Date(movement.createdAt).toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </Card>
+                return (
+                  <tr key={movement.id} className="hover:bg-zinc-900/20 transition-colors">
+                    <td className="p-4 text-xs font-semibold text-text-primary">
+                      {item?.name || "Deleted Item"}
+                    </td>
+                    <td className="p-4">
+                      <StatusBadge status={movement.type} />
+                    </td>
+                    <td className="p-4 text-xs font-mono font-bold text-text-primary">
+                      {formatQty(movement.quantity, movement.type)} {item?.unit || ""}
+                    </td>
+                    <td className="p-4 text-xs text-text-secondary">{movement.reason}</td>
+                    <td className="p-4 text-xs text-text-secondary">{user?.name || "System"}</td>
+                    <td className="p-4 text-xs text-text-muted font-mono">
+                      {new Date(movement.createdAt).toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

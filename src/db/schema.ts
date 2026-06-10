@@ -193,3 +193,28 @@ export const stockMovements = pgTable("stock_movements", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 14. Stock Audits Table (Inventory Controls)
+export const stockAudits = pgTable("stock_audits", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: text("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  status: text("status").default("in_progress").notNull(), // 'in_progress', 'completed', 'cancelled'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// 15. Stock Audit Items Table (Snapshot and Counts)
+export const stockAuditItems = pgTable("stock_audit_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  auditId: uuid("audit_id")
+    .notNull()
+    .references(() => stockAudits.id, { onDelete: "cascade" }),
+  stockItemId: uuid("stock_item_id")
+    .notNull()
+    .references(() => stockItems.id, { onDelete: "cascade" }),
+  expectedQuantity: doublePrecision("expected_quantity").notNull(),
+  countedQuantity: doublePrecision("counted_quantity"),
+});

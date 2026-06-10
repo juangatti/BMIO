@@ -31,6 +31,10 @@ import {
   deleteExpense,
   bulkImportStock,
   updateStockItem,
+  startStockAudit,
+  saveAuditProgress,
+  cancelStockAudit,
+  finalizeStockAudit,
 } from "@/db/actions";
 
 // Atoms & Molecules
@@ -42,6 +46,8 @@ import Select from "@/components/atoms/Select";
 import Sidebar from "@/components/organisms/Sidebar";
 import Topbar from "@/components/organisms/Topbar";
 import BulkImportModal from "@/components/organisms/BulkImportModal";
+import InventorySubNav from "@/components/organisms/InventorySubNav";
+import SettingsSubNav from "@/components/organisms/SettingsSubNav";
 import OverviewTab from "@/components/organisms/tabs/OverviewTab";
 import TapsTab from "@/components/organisms/tabs/TapsTab";
 import InventoryTab from "@/components/organisms/tabs/InventoryTab";
@@ -70,6 +76,8 @@ interface DashboardProps {
     users: any[];
     expenses: any[];
     stockMovements: any[];
+    stockAudits?: any[];
+    stockAuditItems?: any[];
   };
   tenantId: string;
   currentUser?: any;
@@ -80,14 +88,26 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
     | "overview"
     | "taps"
     | "inventory"
+    | "financials"
+    | "expenses"
     | "reservations"
     | "prebatches"
     | "schedules"
     | "staff"
     | "settings"
-    | "financials"
-    | "expenses"
   >("overview");
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    const storedTab = sessionStorage.getItem("activeTab");
+    if (storedTab) setActiveTab(storedTab as any);
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isMounted) sessionStorage.setItem("activeTab", activeTab);
+  }, [activeTab, isMounted]);
 
   const [activeSettingsTab, setActiveSettingsTab] = useState<
     "profile" | "branding" | "categories" | "permissions"
@@ -122,7 +142,16 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
   // Inventory sub-navigation and detail sheets states
   const [activeInventorySubTab, setActiveInventorySubTab] = useState<
     "stock" | "files" | "recipes" | "products" | "detail" | "movements"
-  >("files");
+  >( "files" );
+
+  React.useEffect(() => {
+    const storedSubTab = sessionStorage.getItem("activeInventorySubTab");
+    if (storedSubTab) setActiveInventorySubTab(storedSubTab as any);
+  }, []);
+
+  React.useEffect(() => {
+    if (isMounted) sessionStorage.setItem("activeInventorySubTab", activeInventorySubTab);
+  }, [activeInventorySubTab, isMounted]);
   const [selectedIngredientId, setSelectedIngredientId] = useState<string | null>(null);
   const [inventorySearchQuery, setInventorySearchQuery] = useState("");
   const [isEditingIngredientDetail, setIsEditingIngredientDetail] = useState(false);
@@ -139,6 +168,58 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
     "stock" | "files" | "recipes" | "products" | "detail" | "movements" | null
   >(null);
   const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
+
+  // Stock Audit State
+  const activeAudit = localData.stockAudits?.find((a: any) => a.status === "in_progress");
+  const auditItems = activeAudit 
+    ? localData.stockAuditItems?.filter((ai: any) => ai.auditId === activeAudit.id) || []
+    : [];
+
+  const handleStartAudit = async () => {
+    startTransition(async () => {
+      const res = await startStockAudit(tenantId, currentUser?.id);
+      if (res.success) {
+        await refreshData();
+      } else {
+        alert(res.error || "Failed to start audit");
+      }
+    });
+  };
+
+  const handleSaveAudit = async (counts: Array<{ stockItemId: string, countedQuantity: number }>) => {
+    if (!activeAudit) return;
+    startTransition(async () => {
+      const res = await saveAuditProgress(activeAudit.id, counts);
+      if (res.success) {
+        // Just show success toast or silent save
+      } else {
+        alert(res.error || "Failed to save progress");
+      }
+    });
+  };
+
+  const handleCancelAudit = async () => {
+    if (!activeAudit) return;
+    if (!confirm("Are you sure you want to cancel this stock count? All progress will be lost.")) return;
+    startTransition(async () => {
+      const res = await cancelStockAudit(activeAudit.id);
+      if (res.success) {
+        await refreshData();
+      }
+    });
+  };
+
+  const handleFinalizeAudit = async () => {
+    if (!activeAudit) return;
+    startTransition(async () => {
+      const res = await finalizeStockAudit(activeAudit.id, currentUser?.id);
+      if (res.success) {
+        await refreshData();
+      } else {
+        alert(res.error || "Failed to finalize audit");
+      }
+    });
+  };
 
   const activeConfig = localData.barConfigs?.[0];
   const allowStaffStockAdjust = activeConfig?.allowStaffStockAdjust ?? false;
@@ -727,10 +808,36 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
     });
   };
 
+  const subSidebarContent = (() => {
+    if (activeTab === "inventory") {
+      return (
+        <InventorySubNav
+          activeSubTab={activeInventorySubTab}
+          onSubTabSwitch={handleSubTabSwitch}
+        />
+      );
+    }
+    if (activeTab === "settings") {
+      return (
+        <SettingsSubNav
+          activeSettingsTab={activeSettingsTab}
+          setActiveSettingsTab={setActiveSettingsTab}
+          isAdmin={currentUser?.role === "admin"}
+        />
+      );
+    }
+    return undefined;
+  })();
+
   return (
     <>
       {isPending && (
         <div className="fixed inset-0 bg-zinc-950/70 z-50 flex items-center justify-center pointer-events-none select-none">
+          <Spinner />
+        </div>
+      )}
+      {!isMounted && (
+        <div className="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center">
           <Spinner />
         </div>
       )}
@@ -745,6 +852,7 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             logoUrl={localData.tenant?.logoUrl}
           />
         }
+        subSidebar={subSidebarContent}
         topbar={
           <Topbar
             activeTab={activeTab}
@@ -803,10 +911,9 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             onSaveIngredient={() => setShowSaveConfirmModal(true)}
             onCancelIngredient={() => {
               if (isFormDirty()) {
-                setPendingSubTabSwitch(null);
                 setShowUnsavedPrompt(true);
               } else {
-                setIsEditingIngredientDetail(false);
+                handleDiscardChanges();
               }
             }}
             isFormDirty={isFormDirty}
@@ -823,6 +930,12 @@ export default function Dashboard({ initialData, tenantId, currentUser }: Dashbo
             movementTypeFilter={movementTypeFilter}
             setMovementTypeFilter={setMovementTypeFilter}
             handleOpenIngredientDetail={handleOpenIngredientDetail}
+            activeAudit={activeAudit}
+            auditItems={auditItems}
+            onStartAudit={handleStartAudit}
+            onSaveAudit={handleSaveAudit}
+            onCancelAudit={handleCancelAudit}
+            onFinalizeAudit={handleFinalizeAudit}
           />
         )}
 

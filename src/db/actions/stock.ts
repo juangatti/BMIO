@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "../index";
-import { stockItems, stockMovements, categories } from "../schema";
+import { stockItems, stockMovements, categories, stockAudits, stockAuditItems } from "../schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -203,3 +203,112 @@ export async function updateStockItem(
     return { success: false, error: error.message };
   }
 }
+
+export async function startStockAudit(tenantId: string, userId?: string) {
+  try {
+    // 1. Create audit record
+    const [audit] = await db.insert(stockAudits).values({
+      tenantId,
+      userId: userId || null,
+      status: "in_progress",
+    }).returning({ id: stockAudits.id });
+
+    // 2. Snapshot current stock
+    const currentStock = await db.select().from(stockItems).where(eq(stockItems.tenantId, tenantId));
+    
+    if (currentStock.length > 0) {
+      const auditItems = currentStock.map(item => ({
+        auditId: audit.id,
+        stockItemId: item.id,
+        expectedQuantity: item.quantity,
+        countedQuantity: null,
+      }));
+      await db.insert(stockAuditItems).values(auditItems);
+    }
+
+    revalidatePath("/");
+    return { success: true, auditId: audit.id };
+  } catch (error: any) {
+    console.error("Failed to start stock audit:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function saveAuditProgress(auditId: string, items: Array<{ stockItemId: string, countedQuantity: number }>) {
+  try {
+    for (const item of items) {
+      await db.update(stockAuditItems)
+        .set({ countedQuantity: item.countedQuantity })
+        .where(and(
+          eq(stockAuditItems.auditId, auditId),
+          eq(stockAuditItems.stockItemId, item.stockItemId)
+        ));
+    }
+    return { success: true };
+  } catch (error: any) {
+    console.error("Failed to save audit progress:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function cancelStockAudit(auditId: string) {
+  try {
+    await db.update(stockAudits)
+      .set({ status: "cancelled", completedAt: new Date() })
+      .where(eq(stockAudits.id, auditId));
+    
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Failed to cancel stock audit:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function finalizeStockAudit(auditId: string, userId?: string) {
+  try {
+    const audit = await db.select().from(stockAudits).where(eq(stockAudits.id, auditId)).limit(1);
+    if (!audit || audit.length === 0) throw new Error("Audit not found");
+    if (audit[0].status !== "in_progress") throw new Error("Audit is not in progress");
+
+    const items = await db.select().from(stockAuditItems).where(eq(stockAuditItems.auditId, auditId));
+
+    for (const item of items) {
+      if (item.countedQuantity !== null && item.countedQuantity !== item.expectedQuantity) {
+        const variance = item.countedQuantity - item.expectedQuantity;
+
+        // 1. Get real-time quantity
+        const [realTimeItem] = await db.select().from(stockItems).where(eq(stockItems.id, item.stockItemId)).limit(1);
+        if (realTimeItem) {
+          const newRealTimeQuantity = realTimeItem.quantity + variance;
+          
+          // 2. Apply variance to real-time quantity
+          await db.update(stockItems)
+            .set({ quantity: newRealTimeQuantity })
+            .where(eq(stockItems.id, item.stockItemId));
+
+          // 3. Log movement
+          await db.insert(stockMovements).values({
+            tenantId: audit[0].tenantId,
+            stockItemId: item.stockItemId,
+            type: "adjustment",
+            quantity: variance, // can be negative or positive depending on variance
+            reason: `Stock Audit Reconciliation (Variance: ${variance > 0 ? '+' : ''}${variance})`,
+            userId: userId || null,
+          });
+        }
+      }
+    }
+
+    await db.update(stockAudits)
+      .set({ status: "completed", completedAt: new Date() })
+      .where(eq(stockAudits.id, auditId));
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Failed to finalize stock audit:", error);
+    return { success: false, error: error.message };
+  }
+}
+

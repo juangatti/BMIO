@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 require("./load-env");
 const { migrate } = require("drizzle-orm/node-postgres/migrator");
 const { drizzle } = require("drizzle-orm/node-postgres");

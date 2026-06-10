@@ -2,7 +2,7 @@
 
 import { loginUser, getCurrentUser, logoutUser, addUser, toggleUserActive, updateUserRole, updateUserProfile } from "./actions/auth";
 import { updateTenantBranding, updateRolePermissions, updateBarConfig } from "./actions/tenant";
-import { addStockItem, adjustStockItemQuantity, bulkImportStock, updateStockItem } from "./actions/stock";
+import { addStockItem, adjustStockItemQuantity, bulkImportStock, updateStockItem, startStockAudit, saveAuditProgress, cancelStockAudit, finalizeStockAudit } from "./actions/stock";
 import { pourBeer, updateKegStatus, addKeg } from "./actions/keg";
 import { addReservation, updateReservationStatus } from "./actions/reservation";
 import { addExpense, deleteExpense, getExpenses } from "./actions/expense";
@@ -27,6 +27,10 @@ export {
   adjustStockItemQuantity,
   bulkImportStock,
   updateStockItem,
+  startStockAudit,
+  saveAuditProgress,
+  cancelStockAudit,
+  finalizeStockAudit,
   pourBeer,
   updateKegStatus,
   addKeg,

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "../index";
-import { tenants, categories, stockItems, kegs, reservations, sales, prebatches, workSchedules, barConfigs, users, expenses, stockMovements } from "../schema";
+import { tenants, categories, stockItems, kegs, reservations, sales, prebatches, workSchedules, barConfigs, users, expenses, stockMovements, stockAudits, stockAuditItems } from "../schema";
 import { eq, and } from "drizzle-orm";
 
 export async function getDashboardData(tenantId: string) {
@@ -32,6 +32,13 @@ export async function getDashboardData(tenantId: string) {
     );
     const expensesData = await db.select().from(expenses).where(eq(expenses.tenantId, tenantId));
     const stockMovementsData = await db.select().from(stockMovements).where(eq(stockMovements.tenantId, tenantId));
+    const stockAuditsData = await db.select().from(stockAudits).where(eq(stockAudits.tenantId, tenantId));
+    // Get items for in-progress audits (we could filter by status, but pulling all is fine for small MVP, or join)
+    const activeAudits = stockAuditsData.filter(a => a.status === "in_progress").map(a => a.id);
+    let stockAuditItemsData: any[] = [];
+    if (activeAudits.length > 0) {
+      stockAuditItemsData = await db.select().from(stockAuditItems); // Simple approach
+    }
 
     return {
       success: true,
@@ -48,6 +55,8 @@ export async function getDashboardData(tenantId: string) {
         users: usersData,
         expenses: expensesData,
         stockMovements: stockMovementsData,
+        stockAudits: stockAuditsData,
+        stockAuditItems: stockAuditItemsData,
       }
     };
   } catch (error: any) {

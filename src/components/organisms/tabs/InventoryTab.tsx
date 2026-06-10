@@ -3,6 +3,11 @@ import { FileText, Beer, Box, History } from "lucide-react";
 import StockTable from "../StockTable";
 import MovementsTable from "../MovementsTable";
 import IngredientDetailCard from "../IngredientDetailCard";
+import ActiveAuditTable from "../ActiveAuditTable";
+import Button from "../../atoms/Button";
+import { AlertTriangle } from "lucide-react";
+import InventorySubNav from "../InventorySubNav";
+import SubNavLayout from "@/components/templates/SubNavLayout";
 
 interface InventoryTabProps {
   localData: {
@@ -41,6 +46,12 @@ interface InventoryTabProps {
   movementTypeFilter: string;
   setMovementTypeFilter: (filter: string) => void;
   handleOpenIngredientDetail: (item: any) => void;
+  activeAudit?: any;
+  auditItems?: any[];
+  onStartAudit?: () => void;
+  onSaveAudit?: (counts: any[]) => void;
+  onCancelAudit?: () => void;
+  onFinalizeAudit?: () => void;
 }
 
 export default function InventoryTab({
@@ -68,6 +79,12 @@ export default function InventoryTab({
   movementTypeFilter,
   setMovementTypeFilter,
   handleOpenIngredientDetail,
+  activeAudit,
+  auditItems,
+  onStartAudit,
+  onSaveAudit,
+  onCancelAudit,
+  onFinalizeAudit,
 }: InventoryTabProps) {
   // Filter stock items by query
   const filteredStockItems = localData.stockItems.filter((item) => {
@@ -79,62 +96,22 @@ export default function InventoryTab({
   });
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 animate-fadeIn items-start w-full">
-      {/* Inventory Sub-sidebar navigation (Left Column) */}
-      <aside className="w-full lg:w-56 flex flex-row lg:flex-col gap-1 bg-zinc-950/40 p-2 rounded-2xl border border-zinc-900/60 shrink-0 select-none">
-        <button
-          onClick={() => handleSubTabSwitch("files")}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 justify-start cursor-pointer ${
-            activeInventorySubTab === "files" || activeInventorySubTab === "detail"
-              ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border border-transparent"
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          Ingredients
-        </button>
-        <button
-          onClick={() => handleSubTabSwitch("products")}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 justify-start cursor-pointer ${
-            activeInventorySubTab === "products"
-              ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border border-transparent"
-          }`}
-        >
-          <Beer className="w-4 h-4" />
-          Products
-        </button>
-        <button
-          onClick={() => handleSubTabSwitch("stock")}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 justify-start cursor-pointer ${
-            activeInventorySubTab === "stock"
-              ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border border-transparent"
-          }`}
-        >
-          <Box className="w-4 h-4" />
-          Stock
-        </button>
-        <button
-          onClick={() => handleSubTabSwitch("movements")}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 justify-start cursor-pointer ${
-            activeInventorySubTab === "movements"
-              ? "bg-zinc-900 text-primary border border-zinc-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 border border-transparent"
-          }`}
-        >
-          <History className="w-4 h-4" />
-          Stock Movements
-        </button>
-      </aside>
-
-      {/* Inventory Workspace (Right Column) */}
-      <div className="flex-1 w-full space-y-6">
+    <SubNavLayout
+      mobileNav={
+        <InventorySubNav
+          activeSubTab={activeInventorySubTab}
+          onSubTabSwitch={handleSubTabSwitch}
+          isMobile={true}
+        />
+      }
+    >
+      {/* Inventory Workspace Card */}
+      <div className="flex-1 w-full bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 flex flex-col">
         {/* OPTION 1: INGREDIENTS FILES GRID */}
         {activeInventorySubTab === "files" && (
           <div className="space-y-6 animate-fadeIn">
             {/* Search and Top Bar */}
-            <div className="bg-zinc-950/40 p-4 rounded-2xl border border-zinc-900/60 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="pb-5 border-b border-zinc-800/60 flex flex-col md:flex-row gap-4 justify-between items-center">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-text-primary">
                   Ingredients Profiling (Fichas)
@@ -217,7 +194,7 @@ export default function InventoryTab({
           const item = localData.stockItems.find((si) => si.id === selectedIngredientId);
           if (!item) {
             return (
-              <div className="p-8 text-center bg-zinc-950/40 rounded-2xl border border-zinc-900/60">
+              <div className="p-8 text-center py-12">
                 <p className="text-xs text-text-secondary uppercase">No ingredient selected</p>
                 <button
                   onClick={() => handleSubTabSwitch("files")}
@@ -247,56 +224,74 @@ export default function InventoryTab({
 
         {/* OPTION 3: PRODUCTS SECTIONS LIST */}
         {activeInventorySubTab === "products" && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="bg-zinc-950/40 p-6 rounded-2xl border border-zinc-900/60 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20 text-primary mb-4">
-                <Beer className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary">
-                Products Inventory (Fichas de Productos)
-              </h3>
-              <p className="text-xs text-text-secondary mt-1 uppercase max-w-md mx-auto">
-                Manage bottled products, beer taps, batch prebatches, and ready-to-sell retail menu
-                products.
-              </p>
-              <div className="mt-6 border border-zinc-850 bg-zinc-900/30 rounded-xl p-4 max-w-lg mx-auto text-left">
-                <span className="block text-[10px] uppercase font-bold text-text-muted mb-2">
-                  Connected Sales Menu (Mock Preview)
-                </span>
-                <ul className="space-y-2 text-xs">
-                  <li className="flex justify-between items-center border-b border-zinc-900 pb-1.5">
-                    <span className="font-semibold">Craft Honey Beer Pint</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">$6.50 USD</span>
-                  </li>
-                  <li className="flex justify-between items-center border-b border-zinc-900 pb-1.5">
-                    <span className="font-semibold">Gin & Tonic Premium</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">$8.00 USD</span>
-                  </li>
-                  <li className="flex justify-between items-center pb-1.5">
-                    <span className="font-semibold">House Sangria Pitcher</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">$18.00 USD</span>
-                  </li>
-                </ul>
-              </div>
+          <div className="space-y-6 animate-fadeIn py-6 text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20 text-primary mb-4">
+              <Beer className="w-6 h-6 stroke-[1.5]" />
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary">
+              Products Inventory (Fichas de Productos)
+            </h3>
+            <p className="text-xs text-text-secondary mt-1 uppercase max-w-md mx-auto">
+              Manage bottled products, beer taps, batch prebatches, and ready-to-sell retail menu
+              products.
+            </p>
+            <div className="mt-6 border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 max-w-lg mx-auto text-left">
+              <span className="block text-[10px] uppercase font-bold text-text-muted mb-2">
+                Connected Sales Menu (Mock Preview)
+              </span>
+              <ul className="space-y-2 text-xs">
+                <li className="flex justify-between items-center border-b border-zinc-900 pb-1.5">
+                  <span className="font-semibold">Craft Honey Beer Pint</span>
+                  <span className="text-emerald-400 font-mono text-[10px]">$6.50 USD</span>
+                </li>
+                <li className="flex justify-between items-center border-b border-zinc-900 pb-1.5">
+                  <span className="font-semibold">Gin & Tonic Premium</span>
+                  <span className="text-emerald-400 font-mono text-[10px]">$8.00 USD</span>
+                </li>
+                <li className="flex justify-between items-center pb-1.5">
+                  <span className="font-semibold">House Sangria Pitcher</span>
+                  <span className="text-emerald-400 font-mono text-[10px]">$18.00 USD</span>
+                </li>
+              </ul>
             </div>
           </div>
         )}
 
         {/* OPTION 4: STOCK INVENTORY SHEET */}
         {activeInventorySubTab === "stock" && (
-          <StockTable
-            stockItems={filteredStockItems}
-            categories={localData.categories}
-            isModifying={isModifyingInventory}
-            setIsModifying={setIsModifyingInventory}
-            canAdjustStock={canAdjustStock}
-            onOpenDetail={handleOpenIngredientDetail}
-            onAdjustStock={onAdjustStock}
-            onOpenAddModal={onOpenAddStockModal}
-            onOpenImportModal={onOpenBulkImportModal}
-            searchQuery={inventorySearchQuery}
-            setSearchQuery={setInventorySearchQuery}
-          />
+          <>
+            {activeAudit && auditItems && onSaveAudit && onCancelAudit && onFinalizeAudit ? (
+              <ActiveAuditTable
+                stockItems={localData.stockItems}
+                auditItems={auditItems}
+                categories={localData.categories}
+                onSaveProgress={onSaveAudit}
+                onCancelAudit={onCancelAudit}
+                onFinalizeAudit={onFinalizeAudit}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-end mb-4">
+                  <Button variant="primary" onClick={onStartAudit} className="animate-pulse">
+                    <AlertTriangle className="w-4 h-4 mr-2" /> Start Stock Control
+                  </Button>
+                </div>
+                <StockTable
+                  stockItems={filteredStockItems}
+                  categories={localData.categories}
+                  isModifying={isModifyingInventory}
+                  setIsModifying={setIsModifyingInventory}
+                  canAdjustStock={canAdjustStock}
+                  onOpenDetail={handleOpenIngredientDetail}
+                  onAdjustStock={onAdjustStock}
+                  onOpenAddModal={onOpenAddStockModal}
+                  onOpenImportModal={onOpenBulkImportModal}
+                  searchQuery={inventorySearchQuery}
+                  setSearchQuery={setInventorySearchQuery}
+                />
+              </div>
+            )}
+          </>
         )}
 
         {/* OPTION 5: STOCK MOVEMENTS (STOCK LOGS) */}
@@ -312,6 +307,6 @@ export default function InventoryTab({
           />
         )}
       </div>
-    </div>
+    </SubNavLayout>
   );
 }

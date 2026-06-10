@@ -8,6 +8,7 @@ interface TabButtonProps {
   showLabel?: boolean;
   indicator?: boolean;
   className?: string;
+  sidebarMode?: "hover" | "expanded" | "collapsed";
 }
 
 export default function TabButton({
@@ -18,7 +19,16 @@ export default function TabButton({
   showLabel = true,
   indicator = false,
   className = "",
+  sidebarMode = "hover",
 }: TabButtonProps) {
+  const labelClass = !showLabel || sidebarMode === "collapsed"
+    ? "hidden"
+    : sidebarMode === "expanded"
+      ? "truncate whitespace-nowrap opacity-100 inline"
+      : indicator
+        ? "opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 truncate whitespace-nowrap hidden group-hover:inline"
+        : "truncate whitespace-nowrap";
+
   return (
     <button
       onClick={onClick}
@@ -32,11 +42,10 @@ export default function TabButton({
         <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-primary animate-pulse" />
       )}
       <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-400"}`} />
-      {showLabel && (
-        <span className={indicator ? "opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 truncate whitespace-nowrap hidden group-hover:inline" : "truncate whitespace-nowrap"}>
-          {label}
-        </span>
-      )}
+      <span className={labelClass}>
+        {label}
+      </span>
     </button>
   );
 }
+
